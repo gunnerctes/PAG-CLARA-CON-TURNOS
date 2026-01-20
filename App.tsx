@@ -39,7 +39,7 @@ const App: React.FC = () => {
             M
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-bold text-slate-800 leading-tight">Dra. Especialista</span>
+            <span className="text-lg font-bold text-slate-800 leading-tight">Dra. Balbuena María Clara</span>
             <span className="text-xs text-blue-600 font-semibold tracking-wider uppercase">Gastro & Endoscopia</span>
           </div>
         </div>
