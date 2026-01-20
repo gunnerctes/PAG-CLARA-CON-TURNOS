@@ -103,7 +103,7 @@ const App: React.FC = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Especialidades & Servicios</h2>
             <div className="h-1.5 w-24 bg-blue-600 mx-auto rounded-full"></div>
             <p className="text-slate-500 max-w-2xl mx-auto">
-              Combinamos experiencia clínica con tecnología de vanguardia para ofrecerte el mejor diagnóstico y tratamiento.
+              Integramos conocimiento médico especializado y tecnología avanzada para brindarte diagnósticos precisos y tratamientos eficaces.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
@@ -135,7 +135,7 @@ const App: React.FC = () => {
           </div>
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="bg-white text-blue-600 px-10 py-4 rounded-2xl text-lg font-bold hover:bg-slate-100 transition-all shadow-xl"
+            className="bg-white text-blue-600 px-10 py-4 rounded-2xl text-lg font-bold hover:bg-slate-100 transition-all shadow-x1"
           >
             Reservar Teleconsulta
           </button>
@@ -144,7 +144,7 @@ const App: React.FC = () => {
 
       {/* WhatsApp FAB */}
       <a 
-        href="https://wa.me/123456789" 
+        href="https://wa.me/5493794777580" 
         target="_blank" 
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 bg-[#25D366] text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center hover:scale-110 transition-transform duration-300 z-50"
@@ -182,7 +182,7 @@ const App: React.FC = () => {
             <a href="#" className="hover:text-white">Privacidad</a>
             <a href="#" className="hover:text-white">Prepagas</a>
           </div>
-          <p className="text-xs">© 2024 Desarrollado con excelencia médica.</p>
+          <p className="text-xs">© 2026 Desarrollado por InnovaSys.</p>
         </div>
       </footer>
     </div>
