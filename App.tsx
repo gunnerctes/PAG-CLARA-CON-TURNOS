@@ -1,5 +1,5 @@
 
-import Turnero from './components/Turnero;
+import Turnero from './components/Turnero';
 import React, { useState } from 'react';
 import BookingModal from './components/BookingModal';
 import ChatAssistant from './components/ChatAssistant';
