@@ -1,4 +1,5 @@
 
+import Turnero from './components/Turnero;
 import React, { useState } from 'react';
 import BookingModal from './components/BookingModal';
 import ChatAssistant from './components/ChatAssistant';
@@ -34,6 +35,7 @@ const App: React.FC = () => {
     <div className="min-h-screen flex flex-col relative">
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-40 glass-morphism py-4 px-6 md:px-12 flex justify-between items-center shadow-sm">
+        <Turnero />
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
             M
