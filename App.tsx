@@ -87,7 +87,7 @@ const App: React.FC = () => {
                   <img key={i} src={`https://picsum.photos/40/40?random=${i}`} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="paciente" />
                 ))}
               </div>
-              <span className="text-sm font-medium">+500 pacientes mensuales</span>
+              <span className="text-sm font-medium">+200 pacientes mensuales</span>
             </div>
           </div>
         </div>
