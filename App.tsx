@@ -49,16 +49,16 @@ const App: React.FC = () => {
           <a href="#" className="hover:text-blue-600 transition-colors">Sobre Mí</a>
           <a href="#" className="hover:text-blue-600 transition-colors">Contacto</a>
         </div>
-        <button 
-          <button
-  onClick={() => {
-    console.log("CLICK TURNO");
-    setMostrarTurnero(true);
+        <button
+          onClick={() => {
+          console.log("CLICK TURNO");
+          setMostrarTurnero(true);
   }}
           className="bg-blue-600 text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-200"
-        >
+>
           Sacar Turno
         </button>
+
       </nav>
 
       {/* Hero Section */}
