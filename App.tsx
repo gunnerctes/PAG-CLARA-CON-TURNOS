@@ -139,7 +139,8 @@ const App: React.FC = () => {
             </p>
           </div>
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => setMostrarTurnero(true)}
+
             className="bg-white text-blue-600 px-10 py-4 rounded-2xl text-lg font-bold hover:bg-slate-100 transition-all shadow-x1"
           >
             Reservar Teleconsulta
