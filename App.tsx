@@ -1,6 +1,5 @@
-
+import { useState } from "react";
 import Turnero from './components/Turnero';
-import React, { useState } from 'react';
 import BookingModal from './components/BookingModal';
 import ChatAssistant from './components/ChatAssistant';
 
@@ -25,12 +24,13 @@ const App: React.FC = () => {
       desc: "Atención integral del adulto con enfoque preventivo y clínico."
     }
   ];
-
+  const [mostrarTurnero, setMostrarTurnero] = useState(false);
   const handleBookingSuccess = () => {
     setShowSuccessToast(true);
     setTimeout(() => setShowSuccessToast(false), 5000);
   };
 
+  
   return (
     <div className="min-h-screen flex flex-col relative">
       {/* Navigation */}
@@ -50,7 +50,7 @@ const App: React.FC = () => {
           <a href="#" className="hover:text-blue-600 transition-colors">Contacto</a>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => setMostrarTurnero(true)}
           className="bg-blue-600 text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-200"
         >
           Sacar Turno
@@ -71,7 +71,7 @@ const App: React.FC = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => setMostrarTurnero(true)}
               className="bg-blue-600 text-white px-8 py-4 rounded-2xl text-lg font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 flex items-center justify-center gap-2"
             >
               Solicitar Turno Ahora
@@ -186,6 +186,15 @@ const App: React.FC = () => {
           <p className="text-xs">© 2026 Desarrollado por InnovaSys.</p>
         </div>
       </footer>
+          {mostrarTurnero && (
+      <Turnero
+        onSuccess={handleBookingSuccess}
+        onClose={() => setMostrarTurnero(false)}
+      />
+    )}
+  </div>
+);
+
     </div>
   );
 };
