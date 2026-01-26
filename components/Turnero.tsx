@@ -25,25 +25,25 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
   try {
     const res = await fetch(
-      "https://script.google.com/macros/s/AKfycbzGpq9pNT1Sx8VjV_hIsS9SQvs_BYnVtzUkCm7lmQFAm-YdMsnKGDyiWM-IXrqmPCN5rg/exec",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nombre,
-          telefono,
-          fecha,
-        }),
-      }
-    );
+  "https://script.google.com/macros/s/AKfycbzGpq9pNT1Sx8VjV_hIsS9SQvs_BYnVtzUkCm7lmQFAm-YdMsnKGDyiWM-IXrqmPCN5rg/exec",
+  {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      nombre,
+      telefono,
+      fecha,
+    }),
+  }
+);
 
-    onSuccess();
+setMensaje("Turno solicitado con éxito");
+onSuccess();
+setTimeout(onClose, 1500);
 
-    setTimeout(() => {
-      onClose();
-    }, 1500);
 
   } catch (error) {
     setMensaje("Error al solicitar turno");
