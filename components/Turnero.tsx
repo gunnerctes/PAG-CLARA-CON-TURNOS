@@ -16,13 +16,20 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
       setMensaje("Completá todos los campos");
       return;
     }
+  const fechaSeleccionada = new Date(fecha);
+    if (fechaSeleccionada < new Date()) {
+  setMensaje("No se pueden seleccionar fechas pasadas");
+  return;
+}
 
-    try {
-      const res = await fetch("PEGAR_URL_GOOGLE_SCRIPT_AQUI", {
-        method: "POST",
-        body: JSON.stringify({ nombre, telefono, fecha }),
-        headers: { "Content-Type": "application/json" }
-      });
+    const res = await fetch(
+  "https://script.google.com/macros/s/AKfycbxsCZc0eEX-_pOCpgETNOO71oHjMWnpRKXlFUJ9ETM4MsrM740rD4KPXq_UDi9XzFNfhw/exec",
+  {
+    method: "POST",
+    body: JSON.stringify({ nombre, telefono, fecha }),
+    headers: { "Content-Type": "application/json" }
+  }
+);
 
       const data = await res.json();
       setMensaje(data.mensaje || "Turno solicitado con éxito");
