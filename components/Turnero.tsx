@@ -11,40 +11,48 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const [fecha, setFecha] = useState("");
   const [mensaje, setMensaje] = useState("");
 
-  const enviarTurno = async () => {
-    if (!nombre || !telefono || !fecha) {
-      setMensaje("Completá todos los campos");
-      return;
-    }
-  const fechaSeleccionada = new Date(fecha);
-    if (fechaSeleccionada < new Date()) {
-  setMensaje("No se pueden seleccionar fechas pasadas");
-  return;
-}
-
-  const res = await fetch(
-  "https://script.google.com/macros/s/AKfycbxsCZc0eEX-_pOCpgETNOO71oHjMWnpRKXlFUJ9ETM4MsrM740rD4KPXq_UDi9XzFNfhw/exec",
-  {
-    method: "POST",
-    body: JSON.stringify({ nombre, telefono, fecha }),
-    headers: { "Content-Type": "application/json" }
+ const enviarTurno = async () => {
+  if (!nombre || !telefono || !fecha) {
+    setMensaje("Completá todos los campos");
+    return;
   }
-);
 
-      const data = await res.json();
-      setMensaje(data.mensaje || "Turno solicitado con éxito");
+  const fechaSeleccionada = new Date(fecha);
+  if (fechaSeleccionada < new Date()) {
+    setMensaje("No se pueden seleccionar fechas pasadas");
+    return;
+  }
 
-      // 👉 avisa al padre (App)
-      onSuccess();
+  try {
+    const res = await fetch(
+      "https://script.google.com/macros/s/AKfycbxsCZc0eEX-_pOCpgETNOO71oHjMWnpRKXlFUJ9ETM4MsrM740rD4KPXq_UDi9XzFNfhw/exec",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre,
+          telefono,
+          fecha,
+        }),
+      }
+    );
 
-      // 👉 cierra el modal
-      setTimeout(() => {
-        onClose();
-      }, 1500);
+    const data = await res.json();
+    setMensaje(data.mensaje || "Turno solicitado con éxito");
+
+    onSuccess();
+
+    setTimeout(() => {
+      onClose();
+    }, 1500);
 
   } catch (error) {
-  setMensaje("Error al solicitar turno");
-}
+    setMensaje("Error al solicitar turno");
+  }
+};
+
 
 
   return (
