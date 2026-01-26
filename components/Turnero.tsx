@@ -42,10 +42,10 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
         onClose();
       }, 1500);
 
-    } catch {
-      setMensaje("Error al solicitar turno");
-    }
-  };
+  } catch (error) {
+  setMensaje("Error al solicitar turno");
+}
+
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
