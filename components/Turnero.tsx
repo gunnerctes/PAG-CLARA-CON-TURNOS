@@ -39,9 +39,6 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
       }
     );
 
-    const data = await res.json();
-    setMensaje(data.mensaje || "Turno solicitado con éxito");
-
     onSuccess();
 
     setTimeout(() => {
