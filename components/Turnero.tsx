@@ -25,7 +25,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
   try {
     const res = await fetch(
-  "https://script.google.com/macros/s/AKfycbwp-r5iXoyNOjXaxC9N65jUsjZ8qiBtH0Tg2cSOvh64yEky1UuDmp_7gTe1yYQ25djozw/exec",
+  "https://script.google.com/macros/s/AKfycbxibVamlPPy_1kUMutn4F5t-UxNGmzEfjZykgsGIrl-1R3eJ04Dv34y8OrWFO_L-9SbcQ/exec",
   {
     method: "POST",
     mode: "no-cors",
