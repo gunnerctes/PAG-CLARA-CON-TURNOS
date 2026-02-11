@@ -25,7 +25,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
   try {
     const res = await fetch(
-  "https://script.google.com/macros/s/AKfycbyp7whnKajtz7tTsN5Ac-LDzVYhCdtdY_2JXcf1j2wj8F-sHAo3MaxONE5sxQ0FEJ0Khw/exec",
+  "https://script.google.com/macros/s/AKfycbxRe7AnSbsBZe1-M7xUYMO4KDnIub07aA0LJiE2QV0LLBNL00YtD_4fcNPJC38B01Cw/exec",
   {
     method: "POST",
     mode: "no-cors",
@@ -35,6 +35,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
     body: JSON.stringify({
       nombre,
       telefono,
+      email,
       fecha,
     }),
   }
