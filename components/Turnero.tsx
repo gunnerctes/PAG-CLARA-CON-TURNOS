@@ -10,6 +10,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const [telefono, setTelefono] = useState("");
   const [fecha, setFecha] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const enviarTurno = async () => {
     if (!nombre || !telefono || !fecha) {
@@ -17,30 +18,39 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
       return;
     }
 
+    setLoading(true);
+    setMensaje("");
+
     try {
       const res = await fetch(
-        "https://script.google.com/macros/s/AKfycbxxymZcrgw1bVx1dU1wQlNuz9SckG4Htv7vLKyW4GiD_GHHogP7EAAJNWdIeKKhDUl1/exec",
+        "https://script.google.com/macros/s/AKfycbxoRsXOB2c8fevVAuc7EgWcqObaw3-nAhH6ICt90VEl40w7t8_UyISV9jQuf1vGH7ck/exec",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify({
             nombre,
             telefono,
-            fecha,
-          }),
+            fecha
+          })
         }
       );
 
-      if (!res.ok) throw new Error("HTTP error");
-
       const data = await res.json();
-      setMensaje(data.mensaje || "OK");
-      onSuccess();
-      setTimeout(onClose, 1500);
 
-    } catch (err) {
-      console.error(err);
+      setMensaje(data.mensaje);
+
+      if (data.mensaje === "Turno confirmado") {
+        onSuccess();
+        setTimeout(onClose, 1500);
+      }
+
+    } catch (error) {
+      console.error(error);
       setMensaje("Error al solicitar turno");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,9 +88,10 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
         <button
           onClick={enviarTurno}
-          className="bg-blue-600 text-white w-full py-2 rounded"
+          disabled={loading}
+          className="bg-blue-600 text-white w-full py-2 rounded disabled:opacity-50"
         >
-          Reservar turno
+          {loading ? "Reservando..." : "Reservar turno"}
         </button>
 
         {mensaje && (
