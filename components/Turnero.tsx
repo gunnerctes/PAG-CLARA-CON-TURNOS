@@ -10,7 +10,6 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const [telefono, setTelefono] = useState("");
   const [fecha, setFecha] = useState("");
   const [mensaje, setMensaje] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const enviarTurno = async () => {
     if (!nombre || !telefono || !fecha) {
@@ -18,18 +17,12 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
       return;
     }
 
-    setLoading(true);
-    setMensaje("");
-
     try {
       const res = await fetch(
-        "https://script.google.com/macros/s/AKfycbxCTiPs1WTdqRf04132C7Qw5vESHvp5TZYXGLE7VTRP0XjQD_PZ8vURkxhse6yyVu6B/exec",
+        "https://script.google.com/macros/s/AKfycbxa_USOlUPeDQaUV69tm7axlg1qNqcTaO2wuAjwXLHzVZh37rdmpIe-qKCun7RNc1Au/exec",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
+          body: new URLSearchParams({
             nombre,
             telefono,
             fecha
@@ -38,7 +31,6 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
       );
 
       const data = await res.json();
-
       setMensaje(data.mensaje);
 
       if (data.mensaje === "Turno confirmado") {
@@ -47,17 +39,19 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
       }
 
     } catch (error) {
-      console.error(error);
       setMensaje("Error al solicitar turno");
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-xl w-full max-w-md relative">
-        <button onClick={onClose} className="absolute top-2 right-2">✕</button>
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-xl"
+        >
+          ✕
+        </button>
 
         <h2 className="text-xl font-bold mb-4 text-center">
           Solicitar turno
@@ -65,7 +59,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
         <input
           type="text"
-          placeholder="Nombre"
+          placeholder="Nombre y apellido"
           value={nombre}
           onChange={e => setNombre(e.target.value)}
           className="border p-2 w-full mb-2"
@@ -88,14 +82,15 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
         <button
           onClick={enviarTurno}
-          disabled={loading}
-          className="bg-blue-600 text-white w-full py-2 rounded disabled:opacity-50"
+          className="bg-blue-600 text-white w-full py-2 rounded"
         >
-          {loading ? "Reservando..." : "Reservar turno"}
+          Reservar turno
         </button>
 
         {mensaje && (
-          <p className="text-center text-sm mt-3">{mensaje}</p>
+          <p className="text-center text-sm mt-3">
+            {mensaje}
+          </p>
         )}
       </div>
     </div>
