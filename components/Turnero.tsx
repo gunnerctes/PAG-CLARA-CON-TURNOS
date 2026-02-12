@@ -10,7 +10,6 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const [telefono, setTelefono] = useState("");
   const [fecha, setFecha] = useState("");
   const [mensaje, setMensaje] = useState("");
-  const [cargando, setCargando] = useState(false);
 
   const enviarTurno = async () => {
     if (!nombre || !telefono || !fecha) {
@@ -18,18 +17,9 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
       return;
     }
 
-    const fechaSeleccionada = new Date(fecha);
-    if (fechaSeleccionada < new Date()) {
-      setMensaje("No se pueden seleccionar fechas pasadas");
-      return;
-    }
-
-    setCargando(true);
-    setMensaje("");
-
     try {
-      const res = await fetch(
-        "https://script.google.com/macros/s/AKfycby3gpf-bjpS1kIz6U3YXtWe8WAPQdd4ygWii6TZMXBWVs6G-kHFFOqZMBLkmlhAwwgn/exec",
+      await fetch(
+        "https://script.google.com/macros/s/AKfycbxRe7AnSbsBZe1-M7xUYMO4KDnIub07aA0LJiE2QV0LLBNL00YtD_4fcNPJC38B01Cw/exec",
         {
           method: "POST",
           headers: {
@@ -43,30 +33,18 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
         }
       );
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.mensaje || "Error del servidor");
-      }
-
-      setMensaje(data.mensaje || "Turno confirmado");
+      setMensaje("Turno solicitado con éxito");
       onSuccess();
+      setTimeout(onClose, 1500);
 
-      setTimeout(() => {
-        onClose();
-      }, 1500);
-
-    } catch (error) {
-      setMensaje("Error al solicitar turno. Intentá nuevamente.");
-    } finally {
-      setCargando(false);
+    } catch {
+      setMensaje("Error al solicitar turno");
     }
   };
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
       <div className="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-2xl">
-
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-400 hover:text-black text-xl"
@@ -104,10 +82,9 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
           <button
             onClick={enviarTurno}
-            disabled={cargando}
-            className="bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition disabled:opacity-50"
+            className="bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition"
           >
-            {cargando ? "Enviando..." : "Reservar turno"}
+            Reservar turno
           </button>
 
           {mensaje && (
