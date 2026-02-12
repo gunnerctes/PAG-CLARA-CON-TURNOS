@@ -11,28 +11,39 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const [fecha, setFecha] = useState("");
   const [mensaje, setMensaje] = useState("");
 
-  // ✅ FUNCIÓN CORRECTAMENTE ASYNC
-  const enviarTurno = async () => {
-    if (!nombre || !telefono || !fecha) {
-      setMensaje("Completá todos los campos");
-      return;
-    }
+const enviarTurno = async () => {
+  if (!nombre || !telefono || !fecha) {
+    setMensaje("Completá todos los campos");
+    return;
+  }
 
-    try {
-      const res = await fetch(
-        "https://script.google.com/macros/s/AKfycbygyeK13rY79fW4Evrbv5d0e_1e_f-Wy6CphAwaF6xfe7rYGqxikvpcq5VOT1ij5yGy/exec",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            nombre,
-            telefono,
-            fecha,
-          }),
-        }
-      );
+  try {
+    await fetch(
+      "https://script.google.com/macros/s/AKfycbygyeK13rY79fW4Evrbv5d0e_1e_f-Wy6CphAwaF6xfe7rYGqxikvpcq5VOT1ij5yGy/exec",
+      {
+        method: "POST",
+        mode: "no-cors", // ← CLAVE
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre,
+          telefono,
+          fecha,
+        }),
+      }
+    );
+
+    // ⚠️ NO res.json()
+    setMensaje("Turno solicitado con éxito");
+    onSuccess();
+    setTimeout(onClose, 1500);
+
+  } catch (error) {
+    console.error(error);
+    setMensaje("Error al solicitar turno");
+  }
+};
 
       const data = await res.json();
 
