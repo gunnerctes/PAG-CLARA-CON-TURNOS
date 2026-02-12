@@ -10,54 +10,63 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const [telefono, setTelefono] = useState("");
   const [fecha, setFecha] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [cargando, setCargando] = useState(false);
 
- const enviarTurno = async () => {
-  if (!nombre || !telefono || !fecha) {
-    setMensaje("Completá todos los campos");
-    return;
-  }
+  const enviarTurno = async () => {
+    if (!nombre || !telefono || !fecha) {
+      setMensaje("Completá todos los campos");
+      return;
+    }
 
-  const fechaSeleccionada = new Date(fecha);
-  if (fechaSeleccionada < new Date()) {
-    setMensaje("No se pueden seleccionar fechas pasadas");
-    return;
-  }
+    const fechaSeleccionada = new Date(fecha);
+    if (fechaSeleccionada < new Date()) {
+      setMensaje("No se pueden seleccionar fechas pasadas");
+      return;
+    }
 
-  try {
-    const res = await fetch(
-  "https://script.google.com/macros/s/AKfycbxRe7AnSbsBZe1-M7xUYMO4KDnIub07aA0LJiE2QV0LLBNL00YtD_4fcNPJC38B01Cw/exec",
-  {
-    method: "POST",
-    mode: "no-cors",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      nombre,
-      telefono,
-      email,
-      fecha,
-    }),
-  }
-);
+    setCargando(true);
+    setMensaje("");
 
-setMensaje("Turno solicitado con éxito");
-onSuccess();
-setTimeout(onClose, 1500);
+    try {
+      const res = await fetch(
+        "https://script.google.com/macros/s/AKfycby3gpf-bjpS1kIz6U3YXtWe8WAPQdd4ygWii6TZMXBWVs6G-kHFFOqZMBLkmlhAwwgn/exec",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nombre,
+            telefono,
+            fecha,
+          }),
+        }
+      );
 
+      const data = await res.json();
 
-  } catch (error) {
-    setMensaje("Error al solicitar turno");
-  }
-};
+      if (!res.ok) {
+        throw new Error(data?.mensaje || "Error del servidor");
+      }
 
+      setMensaje(data.mensaje || "Turno confirmado");
+      onSuccess();
 
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+
+    } catch (error) {
+      setMensaje("Error al solicitar turno. Intentá nuevamente.");
+    } finally {
+      setCargando(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
       <div className="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-2xl">
 
-        {/* Botón cerrar */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-400 hover:text-black text-xl"
@@ -95,9 +104,10 @@ setTimeout(onClose, 1500);
 
           <button
             onClick={enviarTurno}
-            className="bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition"
+            disabled={cargando}
+            className="bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition disabled:opacity-50"
           >
-            Reservar turno
+            {cargando ? "Enviando..." : "Reservar turno"}
           </button>
 
           {mensaje && (
