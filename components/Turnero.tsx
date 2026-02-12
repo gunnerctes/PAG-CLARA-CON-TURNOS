@@ -23,7 +23,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
     try {
       const res = await fetch(
-        "https://script.google.com/macros/s/AKfycbxoRsXOB2c8fevVAuc7EgWcqObaw3-nAhH6ICt90VEl40w7t8_UyISV9jQuf1vGH7ck/exec",
+        "https://script.google.com/macros/s/AKfycbxCTiPs1WTdqRf04132C7Qw5vESHvp5TZYXGLE7VTRP0XjQD_PZ8vURkxhse6yyVu6B/exec",
         {
           method: "POST",
           headers: {
