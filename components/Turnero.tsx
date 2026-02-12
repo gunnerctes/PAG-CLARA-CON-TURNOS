@@ -12,26 +12,32 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const [mensaje, setMensaje] = useState("");
 
   const enviarTurno = async () => {
-    if (!nombre || !telefono || !fecha) {
-      setMensaje("Completá todos los campos");
-      return;
-    }
+  try {
+    const res = await fetch(
+      "PEGÁ_ACÁ_LA_URL_NUEVA_DEL_DEPLOY",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre,
+          telefono,
+          fecha,
+        }),
+      }
+    );
 
-    try {
-      await fetch(
-        "https://script.google.com/macros/s/AKfycbxRe7AnSbsBZe1-M7xUYMO4KDnIub07aA0LJiE2QV0LLBNL00YtD_4fcNPJC38B01Cw/exec",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            nombre,
-            telefono,
-            fecha,
-          }),
-        }
-      );
+    if (!res.ok) throw new Error("HTTP error");
+
+    const data = await res.json();
+    setMensaje(data.mensaje || "OK");
+    onSuccess();
+    setTimeout(onClose, 1500);
+
+  } catch (err) {
+    console.error(err);
+    setMensaje("Error al solicitar turno");
+  }
+};
 
       setMensaje("Turno solicitado con éxito");
       onSuccess();
