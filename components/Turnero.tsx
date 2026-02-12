@@ -14,10 +14,12 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const enviarTurno = async () => {
   try {
     const res = await fetch(
-      "PEGÁ_ACÁ_LA_URL_NUEVA_DEL_DEPLOY",
+      "https://script.google.com/macros/s/AKfycbygyeK13rY79fW4Evrbv5d0e_1e_f-Wy6CphAwaF6xfe7rYGqxikvpcq5VOT1ij5yGy/exec",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           nombre,
           telefono,
@@ -25,6 +27,17 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
         }),
       }
     );
+
+    const data = await res.json();
+    setMensaje(data.mensaje || "OK");
+    onSuccess();
+    setTimeout(onClose, 1500);
+
+  } catch (error) {
+    console.error("FETCH ERROR:", error);
+    setMensaje("Error al solicitar turno");
+  }
+};
 
     if (!res.ok) throw new Error("HTTP error");
 
