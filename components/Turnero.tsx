@@ -11,52 +11,37 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const [fecha, setFecha] = useState("");
   const [mensaje, setMensaje] = useState("");
 
+  // ✅ FUNCIÓN CORRECTAMENTE ASYNC
   const enviarTurno = async () => {
-  try {
-    const res = await fetch(
-      "https://script.google.com/macros/s/AKfycbygyeK13rY79fW4Evrbv5d0e_1e_f-Wy6CphAwaF6xfe7rYGqxikvpcq5VOT1ij5yGy/exec",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nombre,
-          telefono,
-          fecha,
-        }),
-      }
-    );
+    if (!nombre || !telefono || !fecha) {
+      setMensaje("Completá todos los campos");
+      return;
+    }
 
-    const data = await res.json();
-    setMensaje(data.mensaje || "OK");
-    onSuccess();
-    setTimeout(onClose, 1500);
+    try {
+      const res = await fetch(
+        "PEGÁ_ACÁ_TU_URL_DEL_SCRIPT",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nombre,
+            telefono,
+            fecha,
+          }),
+        }
+      );
 
-  } catch (error) {
-    console.error("FETCH ERROR:", error);
-    setMensaje("Error al solicitar turno");
-  }
-};
+      const data = await res.json();
 
-    if (!res.ok) throw new Error("HTTP error");
-
-    const data = await res.json();
-    setMensaje(data.mensaje || "OK");
-    onSuccess();
-    setTimeout(onClose, 1500);
-
-  } catch (err) {
-    console.error(err);
-    setMensaje("Error al solicitar turno");
-  }
-};
-
-      setMensaje("Turno solicitado con éxito");
+      setMensaje(data.mensaje || "Turno confirmado");
       onSuccess();
       setTimeout(onClose, 1500);
 
-    } catch {
+    } catch (error) {
+      console.error("ERROR FETCH:", error);
       setMensaje("Error al solicitar turno");
     }
   };
@@ -64,6 +49,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   return (
     <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
       <div className="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-2xl">
+
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-400 hover:text-black text-xl"
