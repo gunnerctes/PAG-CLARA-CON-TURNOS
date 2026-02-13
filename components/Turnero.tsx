@@ -8,26 +8,29 @@ type TurneroProps = {
 export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [email, setEmail] = useState("");
   const [fecha, setFecha] = useState("");
   const [mensaje, setMensaje] = useState("");
 
   const enviarTurno = async () => {
     if (!nombre || !telefono || !fecha) {
-      setMensaje("Completá todos los campos");
+      setMensaje("Completá todos los campos obligatorios");
       return;
     }
 
     try {
-      const res = await fetch("https://script.google.com/macros/s/AKfycbwiF1lGWV18StuPCJaPi9IyuQvGs9WVsDCIR1iZ5cULWmpPtPk_9GBOSdyJ5hAgo7x85w/exec", {
-  method: "POST",
-  body: new URLSearchParams({
-    nombre,
-    email,
-    telefono,
-    fecha
-  })
-});
-
+      const res = await fetch(
+        "https://script.google.com/macros/s/AKfycbwiF1lGWV18StuPCJaPi9IyuQvGs9WVsDCIR1iZ5cULWmpPtPk_9GBOSdyJ5hAgo7x85w/exec",
+        {
+          method: "POST",
+          body: new URLSearchParams({
+            nombre,
+            telefono,
+            email,
+            fecha
+          })
+        }
+      );
 
       const data = await res.json();
       setMensaje(data.mensaje);
@@ -37,7 +40,8 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
         setTimeout(onClose, 1500);
       }
 
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       setMensaje("Error al solicitar turno");
     }
   };
@@ -45,6 +49,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-xl w-full max-w-md relative">
+
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-xl"
@@ -69,6 +74,14 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
           placeholder="Teléfono"
           value={telefono}
           onChange={e => setTelefono(e.target.value)}
+          className="border p-2 w-full mb-2"
+        />
+
+        <input
+          type="email"
+          placeholder="Email (opcional)"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
           className="border p-2 w-full mb-2"
         />
 
