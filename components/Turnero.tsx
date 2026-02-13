@@ -18,10 +18,11 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
     }
 
     try {
-      const res = await fetch("https://script.google.com/macros/s/AKfycbyXPQdYyfsVq8zlx6lojmStSkZCsCzMQVwUAZNV-DMhK8WAIyuwhaxTW6f1NIllSVtUJg/exec", {
+      const res = await fetch("https://script.google.com/macros/s/AKfycbwiF1lGWV18StuPCJaPi9IyuQvGs9WVsDCIR1iZ5cULWmpPtPk_9GBOSdyJ5hAgo7x85w/exec", {
   method: "POST",
   body: new URLSearchParams({
     nombre,
+    email,
     telefono,
     fecha
   })
