@@ -80,7 +80,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
     try {
       const res = await fetch(
-        "https://script.google.com/macros/s/AKfycbyC1Kg195JUcnpyhUZiGUunyzLwm-KSdZVZM08rY4bnK8jcX2IEH1w7-8oXF0ZM-DdB9g/exec",
+        "https://script.google.com/macros/s/AKfycbyrKOF0AWwpJAAnAIUMJ_XmcTCL8KuCyl83hOmMVA5qPzQ4_hCrwwaAZOjeZl5nMnklEw/exec",
         {
           method: "POST",
           body: new URLSearchParams({
