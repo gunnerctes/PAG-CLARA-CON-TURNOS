@@ -13,72 +13,51 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const [email, setEmail] = useState("");
   const [fecha, setFecha] = useState("");
   const [hora, setHora] = useState("");
-  const [horariosDisponibles, setHorariosDisponibles] = useState<string[]>([]);
+  const [horarios, setHorarios] = useState<string[]>([]);
   const [mensaje, setMensaje] = useState("");
   const [tipoMensaje, setTipoMensaje] = useState<TipoMensaje>("");
 
-  const SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbyrKOF0AWwpJAAnAIUMJ_XmcTCL8KuCyl83hOmMVA5qPzQ4_hCrwwaAZOjeZl5nMnklEw/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx2ojeuC5bQ8rfLB2tw7cJTO7ECbwG0WBNRrDqaa6e592EV-7Sn-ZhPY9bhfvXxEl-LfA/exec";
 
-  const esDiaHabil = (fechaISO: string) => {
-    const [y, m, d] = fechaISO.split("-").map(Number);
-    const date = new Date(y, m - 1, d);
-    return [1, 2, 4].includes(date.getDay());
-  };
-
-  const generarHorariosBase = () => {
-    const horarios: string[] = [];
-    let min = 18 * 60;
-    const fin = 20 * 60 + 10;
-
-    while (min <= fin) {
-      horarios.push(
-        `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`
-      );
-      min += 20;
-    }
-    return horarios;
-  };
-
+  // =====================
+  // CUANDO CAMBIA LA FECHA
+  // =====================
   useEffect(() => {
     setHora("");
     setMensaje("");
     setTipoMensaje("");
+    setHorarios([]);
 
-    if (!fecha) {
-      setHorariosDisponibles([]);
-      return;
-    }
+    if (!fecha) return;
 
-    if (!esDiaHabil(fecha)) {
-      setMensaje("Día de atención inválido");
-      setTipoMensaje("error");
-      setHorariosDisponibles([]);
-      return;
-    }
+    fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.length === 0) {
+          setMensaje("Día de atención inválido o sin horarios disponibles");
+          setTipoMensaje("error");
+        } else {
+          setHorarios(data);
+        }
+      })
+      .catch(() => {
+        setMensaje("Error al obtener horarios");
+        setTipoMensaje("error");
+      });
 
-    const cargarHorarios = async () => {
-      const res = await fetch(
-        `${SCRIPT_URL}?modo=horarios&fecha=${fecha}`
-      );
-      const data = await res.json();
-
-      const ocupados: string[] = data.ocupados || [];
-      const base = generarHorariosBase();
-      const libres = base.filter(h => !ocupados.includes(h));
-
-      setHorariosDisponibles(libres);
-    };
-
-    cargarHorarios();
   }, [fecha]);
 
+  // =====================
+  // ENVÍO
+  // =====================
   const enviarTurno = async () => {
     if (!nombre || !telefono || !fecha || !hora) {
       setMensaje("Completá todos los campos obligatorios");
       setTipoMensaje("warning");
       return;
     }
+
+    const fechaFinal = `${fecha}T${hora}`;
 
     try {
       const res = await fetch(SCRIPT_URL, {
@@ -87,7 +66,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
           nombre,
           telefono,
           email,
-          fecha: `${fecha}T${hora}`
+          fecha: fechaFinal
         })
       });
 
@@ -101,6 +80,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
       } else {
         setTipoMensaje("error");
       }
+
     } catch {
       setMensaje("Error al solicitar turno");
       setTipoMensaje("error");
@@ -110,39 +90,76 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-xl w-full max-w-md relative">
+
         <button onClick={onClose} className="absolute top-2 right-2 text-xl">✕</button>
 
         <h2 className="text-xl font-bold text-center mb-2">Solicitar turno</h2>
 
-        <p className="text-sm text-gray-600 text-center mb-4">
+        <p className="text-sm text-center text-gray-600 mb-4">
           Atención: <b>Lunes, Martes y Jueves</b><br />
-          Turnos cada <b>20 minutos</b> de <b>18:00 a 20:10</b>
+          Horarios: <b>18:00 a 20:10</b> — turnos cada <b>20 min</b>
         </p>
 
-        <input className="border p-2 w-full mb-2" placeholder="Nombre" value={nombre} onChange={e => setNombre(e.target.value)} />
-        <input className="border p-2 w-full mb-2" placeholder="Teléfono" value={telefono} onChange={e => setTelefono(e.target.value)} />
-        <input className="border p-2 w-full mb-2" placeholder="Email (opcional)" value={email} onChange={e => setEmail(e.target.value)} />
-        <input type="date" className="border p-2 w-full mb-2" value={fecha} onChange={e => setFecha(e.target.value)} />
+        <input
+          type="text"
+          placeholder="Nombre y apellido"
+          value={nombre}
+          onChange={e => setNombre(e.target.value)}
+          className="border p-2 w-full mb-2"
+        />
 
-        {horariosDisponibles.length > 0 && (
-          <select className="border p-2 w-full mb-3" value={hora} onChange={e => setHora(e.target.value)}>
-            <option value="">Seleccioná horario</option>
-            {horariosDisponibles.map(h => <option key={h}>{h}</option>)}
+        <input
+          type="tel"
+          placeholder="Teléfono"
+          value={telefono}
+          onChange={e => setTelefono(e.target.value)}
+          className="border p-2 w-full mb-2"
+        />
+
+        <input
+          type="email"
+          placeholder="Email (opcional)"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          className="border p-2 w-full mb-2"
+        />
+
+        <input
+          type="date"
+          value={fecha}
+          onChange={e => setFecha(e.target.value)}
+          className="border p-2 w-full mb-2"
+        />
+
+        {horarios.length > 0 && (
+          <select
+            value={hora}
+            onChange={e => setHora(e.target.value)}
+            className="border p-2 w-full mb-4"
+          >
+            <option value="">Seleccioná un horario</option>
+            {horarios.map(h => (
+              <option key={h} value={h}>{h}</option>
+            ))}
           </select>
         )}
 
-        <button onClick={enviarTurno} className="bg-blue-600 text-white w-full py-2 rounded">
+        <button
+          onClick={enviarTurno}
+          className="bg-blue-600 text-white w-full py-2 rounded"
+        >
           Reservar turno
         </button>
 
         {mensaje && (
-          <p className={`mt-4 p-3 text-center font-semibold rounded
+          <p className={`mt-4 p-3 rounded text-center font-semibold
             ${tipoMensaje === "ok" ? "bg-green-100 text-green-700" :
               tipoMensaje === "error" ? "bg-red-100 text-red-700" :
               "bg-yellow-100 text-yellow-700"}`}>
             {mensaje}
           </p>
         )}
+
       </div>
     </div>
   );
