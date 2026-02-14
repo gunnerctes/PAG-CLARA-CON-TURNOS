@@ -1,20 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import Turnero from "./components/Turnero";
-import BookingModal from "./components/BookingModal";
 import ChatAssistant from "./components/ChatAssistant";
 
 const App: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
-  const [mostrarTurnero, setMostrarTurnero] = useState(false);
-
-  const handleBookingSuccess = () => {
-    setShowSuccessToast(true);
-    setTimeout(() => setShowSuccessToast(false), 5000);
-  };
-
   return (
     <div className="min-h-screen flex flex-col relative">
       {/* NAV */}
@@ -22,11 +10,8 @@ const App: React.FC = () => {
         <span className="font-bold">Dra. Balbuena María Clara</span>
 
         <button
-          onClick={() => {
-            console.log("CLICK TURNO OK");
-            setMostrarTurnero(true);
-          }}
           className="bg-blue-600 text-white px-6 py-2 rounded-full"
+          onClick={() => alert("Turnero temporalmente desactivado")}
         >
           Sacar Turno
         </button>
@@ -34,36 +19,19 @@ const App: React.FC = () => {
 
       {/* CONTENIDO */}
       <main className="pt-32 px-6">
+        <h1 className="text-3xl font-bold mb-6">
+          Sitio médico funcionando correctamente
+        </h1>
+
         <button
-          onClick={() => setMostrarTurnero(true)}
           className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold"
+          onClick={() => alert("Turnero temporalmente desactivado")}
         >
           Solicitar Turno Ahora
         </button>
       </main>
 
       <ChatAssistant />
-
-      {/* MODAL TURNERO */}
-      {mostrarTurnero && (
-        <Turnero
-          onSuccess={handleBookingSuccess}
-          onClose={() => setMostrarTurnero(false)}
-        />
-      )}
-
-      {/* TOAST */}
-      {showSuccessToast && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-full z-50">
-          Turno solicitado con éxito
-        </div>
-      )}
-
-      <BookingModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={handleBookingSuccess}
-      />
     </div>
   );
 };
