@@ -21,23 +21,28 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
     "https://script.google.com/macros/s/AKfycbzcqtxqvSZVayOHFz9XAtuKHswvqrtc5Ww8P-t-tt_HgvtBoBNoa6RYmjDvZKhlL9jUqQ/exec";
 
   // =====================
-  // FECHA SEGURA LOCAL
+  // DIA SIN DATE (CLAVE)
   // =====================
-  const parseFechaLocal = (fechaStr: string) => {
-    const [y, m, d] = fechaStr.split("-");
-    return new Date(Number(y), Number(m) - 1, Number(d));
+  const getDayFromISO = (fecha: string) => {
+    const [y, m, d] = fecha.split("-").map(Number);
+    const t = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
+    const year = m < 3 ? y - 1 : y;
+    return (
+      year +
+      Math.floor(year / 4) -
+      Math.floor(year / 100) +
+      Math.floor(year / 400) +
+      t[m - 1] +
+      d
+    ) % 7;
   };
 
-  // =====================
-  // REGLAS DE ATENCIÓN
-  // =====================
-  const esDiaAtencion = (fechaStr: string) => {
-    const date = parseFechaLocal(fechaStr);
-    const d = date.getDay();
+  const esDiaAtencion = (fecha: string) => {
+    const d = getDayFromISO(fecha);
     return d === 1 || d === 2 || d === 4; // Lunes, Martes, Jueves
   };
 
-  const diaInvalido = fecha && !esDiaAtencion(fecha);
+  const diaInvalido = fecha !== "" && !esDiaAtencion(fecha);
 
   // =====================
   // CAMBIO DE FECHA
@@ -50,14 +55,14 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
     if (!fecha) return;
 
-    // 🚫 BLOQUEO TOTAL
+    // 🔴 CORTE TOTAL
     if (!esDiaAtencion(fecha)) {
       setMensaje("Día sin atención médica");
       setTipoMensaje("error");
       return;
     }
 
-    // ✅ SOLO DÍAS VÁLIDOS
+    // SOLO SI ES DÍA VÁLIDO
     fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
       .then(res => res.json())
       .then(data => {
@@ -87,8 +92,6 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
       return;
     }
 
-    const fechaFinal = `${fecha}T${hora}`;
-
     try {
       const res = await fetch(SCRIPT_URL, {
         method: "POST",
@@ -96,7 +99,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
           nombre,
           telefono,
           email,
-          fecha: fechaFinal,
+          fecha: `${fecha}T${hora}`,
         }),
       });
 
@@ -108,7 +111,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
         onSuccess();
         setTimeout(onClose, 1500);
       } else {
-        setMensaje(data.mensaje || "No se pudo confirmar el turno");
+        setMensaje(data.mensaje || "No se pudo confirmar");
         setTipoMensaje("error");
       }
 
@@ -118,66 +121,46 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
     }
   };
 
-  // =====================
-  // UI
-  // =====================
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-xl w-full max-w-md relative">
 
-        <button onClick={onClose} className="absolute top-2 right-2 text-xl">
-          ✕
-        </button>
+        <button onClick={onClose} className="absolute top-2 right-2 text-xl">✕</button>
 
-        <h2 className="text-xl font-bold text-center mb-2">
-          Solicitar turno
-        </h2>
+        <h2 className="text-xl font-bold text-center mb-2">Solicitar turno</h2>
 
         <p className="text-sm text-center text-gray-600 mb-4">
           Atención: <b>Lunes, Martes y Jueves</b><br />
           Horarios: <b>18:00 a 20:10</b> — cada <b>20 min</b>
         </p>
 
-        <input
-          type="text"
-          placeholder="Nombre y apellido"
+        <input type="text" placeholder="Nombre y apellido"
           value={nombre}
           onChange={e => setNombre(e.target.value)}
-          className="border p-2 w-full mb-2"
           disabled={diaInvalido}
-        />
+          className="border p-2 w-full mb-2" />
 
-        <input
-          type="tel"
-          placeholder="Teléfono"
+        <input type="tel" placeholder="Teléfono"
           value={telefono}
           onChange={e => setTelefono(e.target.value)}
-          className="border p-2 w-full mb-2"
           disabled={diaInvalido}
-        />
+          className="border p-2 w-full mb-2" />
 
-        <input
-          type="email"
-          placeholder="Email (opcional)"
+        <input type="email" placeholder="Email (opcional)"
           value={email}
           onChange={e => setEmail(e.target.value)}
-          className="border p-2 w-full mb-2"
           disabled={diaInvalido}
-        />
+          className="border p-2 w-full mb-2" />
 
-        <input
-          type="date"
+        <input type="date"
           value={fecha}
           onChange={e => setFecha(e.target.value)}
-          className="border p-2 w-full mb-2"
-        />
+          className="border p-2 w-full mb-2" />
 
         {!diaInvalido && horarios.length > 0 && (
-          <select
-            value={hora}
+          <select value={hora}
             onChange={e => setHora(e.target.value)}
-            className="border p-2 w-full mb-4"
-          >
+            className="border p-2 w-full mb-4">
             <option value="">Seleccioná un horario</option>
             {horarios.map(h => (
               <option key={h} value={h}>{h}</option>
@@ -188,25 +171,21 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
         <button
           onClick={enviarTurno}
           disabled={diaInvalido}
-          className={`w-full py-2 rounded text-white
-            ${diaInvalido
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600"}
-          `}
+          className={`w-full py-2 rounded text-white ${
+            diaInvalido ? "bg-gray-400" : "bg-blue-600"
+          }`}
         >
           Reservar turno
         </button>
 
         {mensaje && (
-          <p className={`mt-4 p-3 rounded text-center font-semibold
-            ${
-              tipoMensaje === "ok"
-                ? "bg-green-100 text-green-700"
-                : tipoMensaje === "error"
-                ? "bg-red-100 text-red-700"
-                : "bg-yellow-100 text-yellow-700"
-            }`}
-          >
+          <p className={`mt-4 p-3 rounded text-center font-semibold ${
+            tipoMensaje === "ok"
+              ? "bg-green-100 text-green-700"
+              : tipoMensaje === "error"
+              ? "bg-red-100 text-red-700"
+              : "bg-yellow-100 text-yellow-700"
+          }`}>
             {mensaje}
           </p>
         )}
