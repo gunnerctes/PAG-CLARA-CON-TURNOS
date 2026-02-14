@@ -5,6 +5,11 @@ type TurneroProps = {
   onClose: () => void;
 };
 
+type Horario = {
+  hora: string;
+  disponible: boolean;
+};
+
 type TipoMensaje = "ok" | "error" | "warning" | "";
 
 export default function Turnero({ onSuccess, onClose }: TurneroProps) {
@@ -13,7 +18,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const [email, setEmail] = useState("");
   const [fecha, setFecha] = useState("");
   const [hora, setHora] = useState("");
-  const [horarios, setHorarios] = useState<string[]>([]);
+  const [horarios, setHorarios] = useState<Horario[]>([]);
   const [mensaje, setMensaje] = useState("");
   const [tipoMensaje, setTipoMensaje] = useState<TipoMensaje>("");
 
@@ -21,7 +26,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
     "https://script.google.com/macros/s/AKfycbzcqtxqvSZVayOHFz9XAtuKHswvqrtc5Ww8P-t-tt_HgvtBoBNoa6RYmjDvZKhlL9jUqQ/exec";
 
   // =====================
-  // DIA SIN DATE
+  // DÍA DE ATENCIÓN
   // =====================
   const getDayFromISO = (fecha: string) => {
     const [y, m, d] = fecha.split("-").map(Number);
@@ -39,7 +44,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
   const esDiaAtencion = (fecha: string) => {
     const d = getDayFromISO(fecha);
-    return d === 1 || d === 2 || d === 4; // Lun, Mar, Jue
+    return d === 1 || d === 2 || d === 4;
   };
 
   const diaInvalido = fecha !== "" && !esDiaAtencion(fecha);
@@ -55,7 +60,6 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
     if (!fecha) return;
 
-    // 🔴 CORTE FRONTEND
     if (!esDiaAtencion(fecha)) {
       setMensaje("Día sin atención médica");
       setTipoMensaje("error");
@@ -65,28 +69,13 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
     fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
       .then(res => res.json())
       .then(data => {
-        /*
-          data esperado:
-          {
-            diaValido: boolean,
-            horarios: string[],
-            mensaje?: string
-          }
-        */
-
         if (!data.diaValido) {
           setMensaje("Día sin atención médica");
           setTipoMensaje("error");
           return;
         }
 
-        if (!data.horarios || data.horarios.length === 0) {
-          setMensaje("No hay horarios disponibles");
-          setTipoMensaje("warning");
-          return;
-        }
-
-        setHorarios(data.horarios);
+        setHorarios(data.horarios || []);
       })
       .catch(() => {
         setMensaje("Error al obtener horarios");
@@ -191,7 +180,13 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
           >
             <option value="">Seleccioná un horario</option>
             {horarios.map(h => (
-              <option key={h} value={h}>{h}</option>
+              <option
+                key={h.hora}
+                value={h.hora}
+                disabled={!h.disponible}
+              >
+                {h.hora} {h.disponible ? "" : "— Ocupado"}
+              </option>
             ))}
           </select>
         )}
