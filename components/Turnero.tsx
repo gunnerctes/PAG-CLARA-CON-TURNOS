@@ -5,16 +5,20 @@ type TurneroProps = {
   onClose: () => void;
 };
 
+type TipoMensaje = "ok" | "error" | "warning" | "";
+
 export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [email, setEmail] = useState("");
   const [fecha, setFecha] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [tipoMensaje, setTipoMensaje] = useState<TipoMensaje>("");
 
   const enviarTurno = async () => {
     if (!nombre || !telefono || !fecha) {
       setMensaje("Completá todos los campos obligatorios");
+      setTipoMensaje("warning");
       return;
     }
 
@@ -33,16 +37,26 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
       );
 
       const data = await res.json();
+
       setMensaje(data.mensaje);
 
       if (data.mensaje === "Turno confirmado") {
+        setTipoMensaje("ok");
         onSuccess();
         setTimeout(onClose, 1500);
+      } else if (
+        data.mensaje === "Día sin atención" ||
+        data.mensaje === "Horario no disponible"
+      ) {
+        setTipoMensaje("error");
+      } else {
+        setTipoMensaje("warning");
       }
 
     } catch (err) {
       console.error(err);
       setMensaje("Error al solicitar turno");
+      setTipoMensaje("error");
     }
   };
 
@@ -100,10 +114,20 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
         </button>
 
         {mensaje && (
-          <p className="text-center text-sm mt-3">
+          <p
+            className={`text-center text-base font-semibold mt-4 p-3 rounded
+              ${
+                tipoMensaje === "ok"
+                  ? "bg-green-100 text-green-700"
+                  : tipoMensaje === "error"
+                  ? "bg-red-100 text-red-700"
+                  : "bg-yellow-100 text-yellow-700"
+              }`}
+          >
             {mensaje}
           </p>
         )}
+
       </div>
     </div>
   );
