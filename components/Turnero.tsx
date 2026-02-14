@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type TurneroProps = {
   onSuccess: () => void;
@@ -12,48 +12,70 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const [telefono, setTelefono] = useState("");
   const [email, setEmail] = useState("");
   const [fecha, setFecha] = useState("");
+  const [hora, setHora] = useState("");
+  const [horariosDisponibles, setHorariosDisponibles] = useState<string[]>([]);
   const [mensaje, setMensaje] = useState("");
   const [tipoMensaje, setTipoMensaje] = useState<TipoMensaje>("");
 
-  // =========================
-  // VALIDACIONES DE ATENCIÓN
-  // =========================
+  // =====================
+  // REGLAS DE ATENCIÓN
+  // =====================
   const esDiaHabil = (date: Date) => {
-    const dia = date.getDay(); // 0=Domingo
-    return dia === 1 || dia === 2 || dia === 4; // Lunes, Martes, Jueves
+    const d = date.getDay();
+    return d === 1 || d === 2 || d === 4; // Lunes, Martes, Jueves
   };
 
-  const esHorarioHabil = (date: Date) => {
-    const minutos = date.getHours() * 60 + date.getMinutes();
-    const inicio = 18 * 60;      // 18:00
-    const fin = 20 * 60 + 10;    // último turno 20:10
+  const generarHorarios = () => {
+    const horarios: string[] = [];
+    let minutos = 18 * 60;      // 18:00
+    const fin = 20 * 60 + 10;   // 20:10
 
-    if (minutos < inicio || minutos > fin) return false;
-    if (minutos % 20 !== 0) return false;
+    while (minutos <= fin) {
+      const h = String(Math.floor(minutos / 60)).padStart(2, "0");
+      const m = String(minutos % 60).padStart(2, "0");
+      horarios.push(`${h}:${m}`);
+      minutos += 20;
+    }
 
-    return true;
+    return horarios;
   };
 
+  // =====================
+  // CUANDO CAMBIA FECHA
+  // =====================
+  useEffect(() => {
+    setHora("");
+    setMensaje("");
+    setTipoMensaje("");
+
+    if (!fecha) {
+      setHorariosDisponibles([]);
+      return;
+    }
+
+    const date = new Date(fecha);
+
+    if (!esDiaHabil(date)) {
+      setMensaje("Día de atención inválido");
+      setTipoMensaje("error");
+      setHorariosDisponibles([]);
+      return;
+    }
+
+    setHorariosDisponibles(generarHorarios());
+  }, [fecha]);
+
+  // =====================
+  // ENVÍO
+  // =====================
   const enviarTurno = async () => {
-    if (!nombre || !telefono || !fecha) {
+    if (!nombre || !telefono || !fecha || !hora) {
       setMensaje("Completá todos los campos obligatorios");
       setTipoMensaje("warning");
       return;
     }
 
-    const fechaObj = new Date(fecha);
-
-    if (!esDiaHabil(fechaObj)) {
-      setMensaje("Día de atención inválido");
-      setTipoMensaje("error");
-      return;
-    }
-
-    if (!esHorarioHabil(fechaObj)) {
-      setMensaje("Horario fuera del rango de atención");
-      setTipoMensaje("warning");
-      return;
-    }
+    const fechaFinal = `${fecha}T${hora}`;
 
     try {
       const res = await fetch(
@@ -64,7 +86,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
             nombre,
             telefono,
             email,
-            fecha
+            fecha: fechaFinal
           })
         }
       );
@@ -93,16 +115,18 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-xl w-full max-w-md relative">
 
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 text-xl"
-        >
+        <button onClick={onClose} className="absolute top-2 right-2 text-xl">
           ✕
         </button>
 
-        <h2 className="text-xl font-bold mb-4 text-center">
+        <h2 className="text-xl font-bold mb-2 text-center">
           Solicitar turno
         </h2>
+
+        <p className="text-sm text-gray-600 text-center mb-4">
+          📅 Atención: <b>Lunes, Martes y Jueves</b><br />
+          🕒 Horario: <b>18:00 a 20:10</b> — turnos cada <b>20 minutos</b>
+        </p>
 
         <input
           type="text"
@@ -129,11 +153,24 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
         />
 
         <input
-          type="datetime-local"
+          type="date"
           value={fecha}
           onChange={e => setFecha(e.target.value)}
-          className="border p-2 w-full mb-4"
+          className="border p-2 w-full mb-2"
         />
+
+        {horariosDisponibles.length > 0 && (
+          <select
+            value={hora}
+            onChange={e => setHora(e.target.value)}
+            className="border p-2 w-full mb-4"
+          >
+            <option value="">Seleccioná un horario</option>
+            {horariosDisponibles.map(h => (
+              <option key={h} value={h}>{h}</option>
+            ))}
+          </select>
+        )}
 
         <button
           onClick={enviarTurno}
