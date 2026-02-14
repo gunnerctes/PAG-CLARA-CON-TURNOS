@@ -15,9 +15,42 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   const [mensaje, setMensaje] = useState("");
   const [tipoMensaje, setTipoMensaje] = useState<TipoMensaje>("");
 
+  // =========================
+  // VALIDACIONES DE ATENCIÓN
+  // =========================
+  const esDiaHabil = (date: Date) => {
+    const dia = date.getDay(); // 0=Domingo
+    return dia === 1 || dia === 2 || dia === 4; // Lunes, Martes, Jueves
+  };
+
+  const esHorarioHabil = (date: Date) => {
+    const minutos = date.getHours() * 60 + date.getMinutes();
+    const inicio = 18 * 60;      // 18:00
+    const fin = 20 * 60 + 10;    // último turno 20:10
+
+    if (minutos < inicio || minutos > fin) return false;
+    if (minutos % 20 !== 0) return false;
+
+    return true;
+  };
+
   const enviarTurno = async () => {
     if (!nombre || !telefono || !fecha) {
       setMensaje("Completá todos los campos obligatorios");
+      setTipoMensaje("warning");
+      return;
+    }
+
+    const fechaObj = new Date(fecha);
+
+    if (!esDiaHabil(fechaObj)) {
+      setMensaje("Día de atención inválido");
+      setTipoMensaje("error");
+      return;
+    }
+
+    if (!esHorarioHabil(fechaObj)) {
+      setMensaje("Horario fuera del rango de atención");
       setTipoMensaje("warning");
       return;
     }
@@ -37,17 +70,13 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
       );
 
       const data = await res.json();
-
       setMensaje(data.mensaje);
 
       if (data.mensaje === "Turno confirmado") {
         setTipoMensaje("ok");
         onSuccess();
         setTimeout(onClose, 1500);
-      } else if (
-        data.mensaje === "Día sin atención" ||
-        data.mensaje === "Horario no disponible"
-      ) {
+      } else if (data.mensaje === "Horario no disponible") {
         setTipoMensaje("error");
       } else {
         setTipoMensaje("warning");
