@@ -20,15 +20,18 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   // =====================
   // REGLAS DE ATENCIÓN
   // =====================
-  const esDiaHabil = (date: Date) => {
+  // Lunes (1), Martes (2), Jueves (4)
+  const esDiaHabil = (fechaISO: string) => {
+    const [anio, mes, dia] = fechaISO.split("-").map(Number);
+    const date = new Date(anio, mes - 1, dia);
     const d = date.getDay();
-    return d === 1 || d === 2 || d === 4; // Lunes, Martes, Jueves
+    return d === 1 || d === 2 || d === 4;
   };
 
   const generarHorarios = () => {
     const horarios: string[] = [];
-    let minutos = 18 * 60;      // 18:00
-    const fin = 20 * 60 + 10;   // 20:10
+    let minutos = 18 * 60;     // 18:00
+    const fin = 20 * 60 + 10;  // 20:10
 
     while (minutos <= fin) {
       const h = String(Math.floor(minutos / 60)).padStart(2, "0");
@@ -53,9 +56,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
       return;
     }
 
-    const date = new Date(fecha);
-
-    if (!esDiaHabil(date)) {
+    if (!esDiaHabil(fecha)) {
       setMensaje("Día de atención inválido");
       setTipoMensaje("error");
       setHorariosDisponibles([]);
@@ -115,7 +116,10 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-xl w-full max-w-md relative">
 
-        <button onClick={onClose} className="absolute top-2 right-2 text-xl">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-xl"
+        >
           ✕
         </button>
 
@@ -167,7 +171,9 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
           >
             <option value="">Seleccioná un horario</option>
             {horariosDisponibles.map(h => (
-              <option key={h} value={h}>{h}</option>
+              <option key={h} value={h}>
+                {h}
+              </option>
             ))}
           </select>
         )}
