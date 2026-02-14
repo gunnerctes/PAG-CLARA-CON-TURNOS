@@ -21,7 +21,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
     "https://script.google.com/macros/s/AKfycbzcqtxqvSZVayOHFz9XAtuKHswvqrtc5Ww8P-t-tt_HgvtBoBNoa6RYmjDvZKhlL9jUqQ/exec";
 
   // =====================
-  // DIA SIN DATE (CLAVE)
+  // DIA SIN DATE
   // =====================
   const getDayFromISO = (fecha: string) => {
     const [y, m, d] = fecha.split("-").map(Number);
@@ -39,7 +39,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
   const esDiaAtencion = (fecha: string) => {
     const d = getDayFromISO(fecha);
-    return d === 1 || d === 2 || d === 4; // Lunes, Martes, Jueves
+    return d === 1 || d === 2 || d === 4; // Lun, Mar, Jue
   };
 
   const diaInvalido = fecha !== "" && !esDiaAtencion(fecha);
@@ -55,23 +55,38 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
     if (!fecha) return;
 
-    // 🔴 CORTE TOTAL
+    // 🔴 CORTE FRONTEND
     if (!esDiaAtencion(fecha)) {
       setMensaje("Día sin atención médica");
       setTipoMensaje("error");
       return;
     }
 
-    // SOLO SI ES DÍA VÁLIDO
     fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
       .then(res => res.json())
       .then(data => {
-        if (!Array.isArray(data) || data.length === 0) {
+        /*
+          data esperado:
+          {
+            diaValido: boolean,
+            horarios: string[],
+            mensaje?: string
+          }
+        */
+
+        if (!data.diaValido) {
+          setMensaje("Día sin atención médica");
+          setTipoMensaje("error");
+          return;
+        }
+
+        if (!data.horarios || data.horarios.length === 0) {
           setMensaje("No hay horarios disponibles");
           setTipoMensaje("warning");
-        } else {
-          setHorarios(data);
+          return;
         }
+
+        setHorarios(data.horarios);
       })
       .catch(() => {
         setMensaje("Error al obtener horarios");
@@ -105,8 +120,8 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
       const data = await res.json();
 
-      if (data.mensaje === "Turno confirmado") {
-        setMensaje(data.mensaje);
+      if (data.ok) {
+        setMensaje("Turno confirmado");
         setTipoMensaje("ok");
         onSuccess();
         setTimeout(onClose, 1500);
@@ -134,33 +149,46 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
           Horarios: <b>18:00 a 20:10</b> — cada <b>20 min</b>
         </p>
 
-        <input type="text" placeholder="Nombre y apellido"
+        <input
+          type="text"
+          placeholder="Nombre y apellido"
           value={nombre}
           onChange={e => setNombre(e.target.value)}
           disabled={diaInvalido}
-          className="border p-2 w-full mb-2" />
+          className="border p-2 w-full mb-2"
+        />
 
-        <input type="tel" placeholder="Teléfono"
+        <input
+          type="tel"
+          placeholder="Teléfono"
           value={telefono}
           onChange={e => setTelefono(e.target.value)}
           disabled={diaInvalido}
-          className="border p-2 w-full mb-2" />
+          className="border p-2 w-full mb-2"
+        />
 
-        <input type="email" placeholder="Email (opcional)"
+        <input
+          type="email"
+          placeholder="Email (opcional)"
           value={email}
           onChange={e => setEmail(e.target.value)}
           disabled={diaInvalido}
-          className="border p-2 w-full mb-2" />
+          className="border p-2 w-full mb-2"
+        />
 
-        <input type="date"
+        <input
+          type="date"
           value={fecha}
           onChange={e => setFecha(e.target.value)}
-          className="border p-2 w-full mb-2" />
+          className="border p-2 w-full mb-2"
+        />
 
         {!diaInvalido && horarios.length > 0 && (
-          <select value={hora}
+          <select
+            value={hora}
             onChange={e => setHora(e.target.value)}
-            className="border p-2 w-full mb-4">
+            className="border p-2 w-full mb-4"
+          >
             <option value="">Seleccioná un horario</option>
             {horarios.map(h => (
               <option key={h} value={h}>{h}</option>
