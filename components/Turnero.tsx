@@ -21,6 +21,14 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
     "https://script.google.com/macros/s/AKfycbzcqtxqvSZVayOHFz9XAtuKHswvqrtc5Ww8P-t-tt_HgvtBoBNoa6RYmjDvZKhlL9jUqQ/exec";
 
   // =====================
+  // REGLAS DE ATENCIÓN (FRONTEND)
+  // =====================
+  const esDiaAtencion = (fechaStr: string) => {
+    const d = new Date(fechaStr).getDay();
+    return d === 1 || d === 2 || d === 4; // Lun, Mar, Jue
+  };
+
+  // =====================
   // CUANDO CAMBIA LA FECHA
   // =====================
   useEffect(() => {
@@ -31,31 +39,34 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
     if (!fecha) return;
 
-    fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (!data.diaValido) {
-          setMensaje(data.mensaje || "Día sin atención");
-          setTipoMensaje("error");
-          return;
-        }
+    // 🚫 BLOQUEO ABSOLUTO DE DÍAS NO VÁLIDOS
+    if (!esDiaAtencion(fecha)) {
+      setMensaje("Día sin atención médica");
+      setTipoMensaje("error");
+      return;
+    }
 
-        if (data.horarios.length === 0) {
-          setMensaje("No hay horarios disponibles para este día");
+    // ✅ SOLO SI EL DÍA ES VÁLIDO SE CONSULTA AL BACKEND
+    fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!Array.isArray(data) || data.length === 0) {
+          setMensaje("No hay horarios disponibles");
           setTipoMensaje("warning");
           return;
         }
 
-        setHorarios(data.horarios);
+        setHorarios(data);
       })
       .catch(() => {
         setMensaje("Error al obtener horarios");
         setTipoMensaje("error");
       });
+
   }, [fecha]);
 
   // =====================
-  // ENVÍO DEL TURNO
+  // ENVÍO
   // =====================
   const enviarTurno = async () => {
     setMensaje("");
@@ -64,6 +75,12 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
     if (!nombre || !telefono || !fecha || !hora) {
       setMensaje("Completá todos los campos obligatorios");
       setTipoMensaje("warning");
+      return;
+    }
+
+    if (!esDiaAtencion(fecha)) {
+      setMensaje("Día sin atención médica");
+      setTipoMensaje("error");
       return;
     }
 
@@ -82,7 +99,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
 
       const data = await res.json();
 
-      if (data.ok) {
+      if (data.mensaje === "Turno confirmado") {
         setMensaje(data.mensaje);
         setTipoMensaje("ok");
         onSuccess();
@@ -91,8 +108,9 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
         setMensaje(data.mensaje || "No se pudo confirmar el turno");
         setTipoMensaje("error");
       }
+
     } catch {
-      setMensaje("Error al solicitar turno");
+      setMensaje("Error del servidor");
       setTipoMensaje("error");
     }
   };
@@ -103,10 +121,8 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-xl w-full max-w-md relative">
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 text-xl"
-        >
+
+        <button onClick={onClose} className="absolute top-2 right-2 text-xl">
           ✕
         </button>
 
@@ -115,16 +131,15 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
         </h2>
 
         <p className="text-sm text-center text-gray-600 mb-4">
-          Atención: <b>Lunes, Martes y Jueves</b>
-          <br />
-          Horarios: <b>18:00 a 20:10</b> — turnos cada <b>20 min</b>
+          Atención: <b>Lunes, Martes y Jueves</b><br />
+          Horarios: <b>18:00 a 20:10</b> — cada <b>20 min</b>
         </p>
 
         <input
           type="text"
           placeholder="Nombre y apellido"
           value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
+          onChange={e => setNombre(e.target.value)}
           className="border p-2 w-full mb-2"
         />
 
@@ -132,7 +147,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
           type="tel"
           placeholder="Teléfono"
           value={telefono}
-          onChange={(e) => setTelefono(e.target.value)}
+          onChange={e => setTelefono(e.target.value)}
           className="border p-2 w-full mb-2"
         />
 
@@ -140,28 +155,26 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
           type="email"
           placeholder="Email (opcional)"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={e => setEmail(e.target.value)}
           className="border p-2 w-full mb-2"
         />
 
         <input
           type="date"
           value={fecha}
-          onChange={(e) => setFecha(e.target.value)}
+          onChange={e => setFecha(e.target.value)}
           className="border p-2 w-full mb-2"
         />
 
         {horarios.length > 0 && (
           <select
             value={hora}
-            onChange={(e) => setHora(e.target.value)}
+            onChange={e => setHora(e.target.value)}
             className="border p-2 w-full mb-4"
           >
             <option value="">Seleccioná un horario</option>
-            {horarios.map((h) => (
-              <option key={h} value={h}>
-                {h}
-              </option>
+            {horarios.map(h => (
+              <option key={h} value={h}>{h}</option>
             ))}
           </select>
         )}
@@ -174,8 +187,7 @@ export default function Turnero({ onSuccess, onClose }: TurneroProps) {
         </button>
 
         {mensaje && (
-          <p
-            className={`mt-4 p-3 rounded text-center font-semibold
+          <p className={`mt-4 p-3 rounded text-center font-semibold
             ${
               tipoMensaje === "ok"
                 ? "bg-green-100 text-green-700"
