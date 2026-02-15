@@ -3,6 +3,7 @@ import { useState } from "react";
 type TurnoData = {
   nombre: string;
   email: string;
+  telefono: string;
   fecha: string;
   hora: string;
 };
@@ -21,85 +22,90 @@ export default function Turnero() {
   const [form, setForm] = useState<TurnoData>({
     nombre: "",
     email: "",
+    telefono: "",
     fecha: "",
     hora: "",
   });
 
-  const [error, setError] = useState<string | null>(null);
-  const [ok, setOk] = useState<string | null>(null);
+  const [mensaje, setMensaje] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setError(null);
-    setOk(null);
-  }
-
-  function validarDia(fecha: string) {
-    const date = new Date(fecha);
-    const dia = date.getDay(); // 0 domingo - 6 sábado
-
-    const diasAtencion = [1, 2, 3, 4, 5]; // lunes a viernes
-
-    return diasAtencion.includes(dia);
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setLoading(true);
+    setMensaje(null);
 
-    if (!form.nombre || !form.email || !form.fecha || !form.hora) {
-      setError("Completá todos los campos");
-      return;
-    }
-
-    if (!validarDia(form.fecha)) {
-      setError("Día sin atención");
-      return;
-    }
-
-    // SIMULACIÓN OK (no backend todavía)
-    setOk("Turno solicitado correctamente");
-    setForm({
-      nombre: "",
-      email: "",
-      fecha: "",
-      hora: "",
-    });
+    // Simulación segura (NO backend)
+    setTimeout(() => {
+      setLoading(false);
+      setMensaje("✅ Turno solicitado correctamente");
+      setForm({
+        nombre: "",
+        email: "",
+        telefono: "",
+        fecha: "",
+        hora: "",
+      });
+    }, 800);
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: "0 auto" }}>
-      <h2>Solicitar turno</h2>
+    <div style={styles.container}>
+      <h2 style={styles.title}>Solicitar turno</h2>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={styles.form}>
         <input
-          type="text"
           name="nombre"
-          placeholder="Nombre"
+          placeholder="Nombre completo"
           value={form.nombre}
           onChange={handleChange}
+          required
+          style={styles.input}
         />
 
         <input
-          type="email"
           name="email"
+          type="email"
           placeholder="Email"
           value={form.email}
           onChange={handleChange}
+          required
+          style={styles.input}
         />
 
         <input
-          type="date"
+          name="telefono"
+          placeholder="Teléfono"
+          value={form.telefono}
+          onChange={handleChange}
+          required
+          style={styles.input}
+        />
+
+        <input
           name="fecha"
+          type="date"
           value={form.fecha}
           onChange={handleChange}
+          required
+          style={styles.input}
         />
 
         <select
           name="hora"
           value={form.hora}
           onChange={handleChange}
+          required
+          style={styles.input}
         >
           <option value="">Seleccionar horario</option>
           {HORARIOS.map((h) => (
@@ -109,11 +115,52 @@ export default function Turnero() {
           ))}
         </select>
 
-        <button type="submit">Solicitar turno</button>
-      </form>
+        <button type="submit" disabled={loading} style={styles.button}>
+          {loading ? "Enviando..." : "Solicitar turno"}
+        </button>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {ok && <p style={{ color: "green" }}>{ok}</p>}
+        {mensaje && <p style={styles.msg}>{mensaje}</p>}
+      </form>
     </div>
   );
 }
+
+const styles: { [key: string]: React.CSSProperties } = {
+  container: {
+    maxWidth: 420,
+    margin: "40px auto",
+    padding: 20,
+    borderRadius: 12,
+    background: "#ffffff",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+  },
+  title: {
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+  },
+  input: {
+    padding: 10,
+    borderRadius: 6,
+    border: "1px solid #ccc",
+    fontSize: 14,
+  },
+  button: {
+    padding: 12,
+    borderRadius: 8,
+    border: "none",
+    background: "#2563eb",
+    color: "#fff",
+    fontSize: 16,
+    cursor: "pointer",
+  },
+  msg: {
+    marginTop: 10,
+    textAlign: "center",
+    color: "green",
+  },
+};
