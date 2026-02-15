@@ -1,166 +1,124 @@
-import { useState } from "react";
+"use client";
 
-type TurnoData = {
-  nombre: string;
-  email: string;
-  telefono: string;
-  fecha: string;
+import { useEffect, useState } from "react";
+
+const SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbwOxVAgpILcNVpTiKEui4GB1OthNJaaYWeMSVIwQVPlL8gLqmqmoV14GFDfacZV9DOaAA/exec";
+
+type Horario = {
   hora: string;
+  disponible: boolean;
 };
 
-const HORARIOS = [
-  "09:00",
-  "10:00",
-  "11:00",
-  "12:00",
-  "15:00",
-  "16:00",
-  "17:00",
-];
+type Props = {
+  onClose: () => void;
+  onSuccess: () => void;
+};
 
-export default function Turnero() {
-  const [form, setForm] = useState<TurnoData>({
-    nombre: "",
-    email: "",
-    telefono: "",
-    fecha: "",
-    hora: "",
-  });
-
-  const [mensaje, setMensaje] = useState<string | null>(null);
+export default function Turnero({ onClose, onSuccess }: Props) {
+  const [fecha, setFecha] = useState("");
+  const [horarios, setHorarios] = useState<Horario[]>([]);
+  const [mensajeDia, setMensajeDia] = useState("");
+  const [horaSeleccionada, setHoraSeleccionada] = useState("");
   const [loading, setLoading] = useState(false);
+  const [enviando, setEnviando] = useState(false);
 
-  function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-  }
+  useEffect(() => {
+    if (!fecha) return;
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
     setLoading(true);
-    setMensaje(null);
+    setHorarios([]);
+    setHoraSeleccionada("");
+    setMensajeDia("");
 
-    // Simulación segura (NO backend)
-    setTimeout(() => {
-      setLoading(false);
-      setMensaje("✅ Turno solicitado correctamente");
-      setForm({
-        nombre: "",
-        email: "",
-        telefono: "",
-        fecha: "",
-        hora: "",
-      });
-    }, 800);
+    fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.diaValido) {
+          setMensajeDia(data.mensaje || "Día sin atención médica");
+        } else {
+          setHorarios(data.horarios || []);
+        }
+      })
+      .catch(() => {
+        setMensajeDia("Error al consultar horarios");
+      })
+      .finally(() => setLoading(false));
+  }, [fecha]);
+
+  function confirmarTurno() {
+    if (!fecha || !horaSeleccionada || mensajeDia) return;
+
+    setEnviando(true);
+
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nombre: "Paciente prueba",
+        telefono: "000000000",
+        fechaISO: `${fecha}T${horaSeleccionada}:00`
+      })
+    })
+      .then(res => res.json())
+      .then(() => {
+        onSuccess();
+      })
+      .catch(() => alert("Error de servidor"))
+      .finally(() => setEnviando(false));
   }
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>Solicitar turno</h2>
-
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <input
-          name="nombre"
-          placeholder="Nombre completo"
-          value={form.nombre}
-          onChange={handleChange}
-          required
-          style={styles.input}
-        />
-
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-          required
-          style={styles.input}
-        />
-
-        <input
-          name="telefono"
-          placeholder="Teléfono"
-          value={form.telefono}
-          onChange={handleChange}
-          required
-          style={styles.input}
-        />
-
-        <input
-          name="fecha"
-          type="date"
-          value={form.fecha}
-          onChange={handleChange}
-          required
-          style={styles.input}
-        />
-
-        <select
-          name="hora"
-          value={form.hora}
-          onChange={handleChange}
-          required
-          style={styles.input}
+    <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center">
+      <div className="bg-white rounded-xl p-6 w-full max-w-md relative">
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-500"
         >
-          <option value="">Seleccionar horario</option>
-          {HORARIOS.map((h) => (
-            <option key={h} value={h}>
-              {h}
-            </option>
-          ))}
-        </select>
-
-        <button type="submit" disabled={loading} style={styles.button}>
-          {loading ? "Enviando..." : "Solicitar turno"}
+          ✕
         </button>
 
-        {mensaje && <p style={styles.msg}>{mensaje}</p>}
-      </form>
+        <h2 className="text-xl font-bold mb-4">Turnos médicos</h2>
+
+        <input
+          type="date"
+          value={fecha}
+          onChange={e => setFecha(e.target.value)}
+          className="border p-2 w-full mb-4"
+        />
+
+        {mensajeDia && <p className="text-red-600">{mensajeDia}</p>}
+        {loading && <p>Cargando horarios…</p>}
+
+        {!mensajeDia && (
+          <div className="flex flex-wrap gap-2 my-4">
+            {horarios.map(h => (
+              <button
+                key={h.hora}
+                disabled={!h.disponible}
+                onClick={() => setHoraSeleccionada(h.hora)}
+                className={`px-4 py-2 rounded ${
+                  !h.disponible
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : h.hora === horaSeleccionada
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-200"
+                }`}
+              >
+                {h.hora}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <button
+          onClick={confirmarTurno}
+          disabled={!horaSeleccionada || enviando}
+          className="bg-blue-600 text-white w-full py-3 rounded-lg mt-4"
+        >
+          {enviando ? "Confirmando…" : "Confirmar turno"}
+        </button>
+      </div>
     </div>
   );
 }
-
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    maxWidth: 420,
-    margin: "40px auto",
-    padding: 20,
-    borderRadius: 12,
-    background: "#ffffff",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-  },
-  title: {
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-  },
-  input: {
-    padding: 10,
-    borderRadius: 6,
-    border: "1px solid #ccc",
-    fontSize: 14,
-  },
-  button: {
-    padding: 12,
-    borderRadius: 8,
-    border: "none",
-    background: "#2563eb",
-    color: "#fff",
-    fontSize: 16,
-    cursor: "pointer",
-  },
-  msg: {
-    marginTop: 10,
-    textAlign: "center",
-    color: "green",
-  },
-};
