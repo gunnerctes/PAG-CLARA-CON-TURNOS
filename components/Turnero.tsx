@@ -57,12 +57,17 @@ export default function Turnero({ onClose, onSuccess }: Props) {
       body: JSON.stringify({
         nombre: "Paciente prueba",
         telefono: "000000000",
-        fecha: `${fecha}T${horaSeleccionada}:00`
+        fechaISO: `${fecha}T${horaSeleccionada}:00` // 🔴 CLAVE
       })
     })
       .then(res => res.json())
-      .then(() => {
-        onSuccess();
+      .then(data => {
+        if (data.ok) {
+          onSuccess();
+          onClose();
+        } else {
+          alert(data.mensaje || "No se pudo confirmar el turno");
+        }
       })
       .catch(() => alert("Error de servidor"))
       .finally(() => setEnviando(false));
@@ -99,7 +104,7 @@ export default function Turnero({ onClose, onSuccess }: Props) {
                 onClick={() => setHoraSeleccionada(h.hora)}
                 className={`px-4 py-2 rounded ${
                   !h.disponible
-                    ? "bg-gray-300"
+                    ? "bg-gray-300 cursor-not-allowed"
                     : h.hora === horaSeleccionada
                     ? "bg-green-600 text-white"
                     : "bg-gray-200"
