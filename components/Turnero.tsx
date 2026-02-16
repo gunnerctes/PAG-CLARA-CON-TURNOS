@@ -23,28 +23,30 @@ export default function Turnero({ onClose, onSuccess }: Props) {
   const [loading, setLoading] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
-  useEffect(() => {
-    if (!fecha) return;
+useEffect(() => {
+  if (typeof window === "undefined") return;
+  if (!fecha) return;
 
-    setLoading(true);
-    setHorarios([]);
-    setHoraSeleccionada("");
-    setMensajeDia("");
+  setLoading(true);
+  setHorarios([]);
+  setHoraSeleccionada("");
+  setMensajeDia("");
 
-    fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
-      .then(res => res.json())
-      .then(data => {
-        if (!data.diaValido) {
-          setMensajeDia(data.mensaje || "Día sin atención médica");
-        } else {
-          setHorarios(data.horarios || []);
-        }
-      })
-      .catch(() => {
-        setMensajeDia("Error al consultar horarios");
-      })
-      .finally(() => setLoading(false));
-  }, [fecha]);
+  fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.diaValido) {
+        setMensajeDia(data.mensaje || "Día sin atención médica");
+      } else {
+        setHorarios(data.horarios || []);
+      }
+    })
+    .catch(() => {
+      setMensajeDia("Error al consultar horarios");
+    })
+    .finally(() => setLoading(false));
+}, [fecha]);
+
 
   function confirmarTurno() {
     if (!fecha || !horaSeleccionada || mensajeDia) return;
