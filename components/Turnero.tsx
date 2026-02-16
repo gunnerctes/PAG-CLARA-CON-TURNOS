@@ -61,8 +61,13 @@ export default function Turnero({ onClose, onSuccess }: Props) {
       })
     })
       .then(res => res.json())
-      .then(() => {
-        onSuccess();
+      .then(data => {
+        if (data.ok) {
+          onSuccess();
+          alert("Turno confirmado correctamente");
+        } else {
+          alert(data.mensaje || "Error de servidor");
+        }
       })
       .catch(() => alert("Error de servidor"))
       .finally(() => setEnviando(false));
@@ -70,10 +75,10 @@ export default function Turnero({ onClose, onSuccess }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md relative">
+      <div className="bg-white rounded-xl p-6 w-full max-w-md relative shadow-lg">
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500"
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
         >
           ✕
         </button>
@@ -84,25 +89,25 @@ export default function Turnero({ onClose, onSuccess }: Props) {
           type="date"
           value={fecha}
           onChange={e => setFecha(e.target.value)}
-          className="border p-2 w-full mb-4"
+          className="border p-2 w-full mb-4 rounded"
         />
 
         {mensajeDia && <p className="text-red-600">{mensajeDia}</p>}
         {loading && <p>Cargando horarios…</p>}
 
-        {!mensajeDia && (
+        {!mensajeDia && horarios.length > 0 && (
           <div className="flex flex-wrap gap-2 my-4">
             {horarios.map(h => (
               <button
                 key={h.hora}
                 disabled={!h.disponible}
                 onClick={() => setHoraSeleccionada(h.hora)}
-                className={`px-4 py-2 rounded ${
+                className={`px-4 py-2 rounded font-medium ${
                   !h.disponible
                     ? "bg-gray-300 cursor-not-allowed"
                     : h.hora === horaSeleccionada
                     ? "bg-green-600 text-white"
-                    : "bg-gray-200"
+                    : "bg-gray-200 hover:bg-gray-300"
                 }`}
               >
                 {h.hora}
@@ -114,7 +119,11 @@ export default function Turnero({ onClose, onSuccess }: Props) {
         <button
           onClick={confirmarTurno}
           disabled={!horaSeleccionada || enviando}
-          className="bg-blue-600 text-white w-full py-3 rounded-lg mt-4"
+          className={`w-full py-3 rounded-lg mt-4 font-bold text-white ${
+            !horaSeleccionada || enviando
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+          }`}
         >
           {enviando ? "Confirmando…" : "Confirmar turno"}
         </button>
