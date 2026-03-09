@@ -48,12 +48,7 @@ useEffect(() => {
 }, [fecha]);
 
 
-  function confirmarTurno() {
-    if (!fecha || !horaSeleccionada || mensajeDia) return;
-
-    setEnviando(true);
-
-    fetch(SCRIPT_URL, {
+  fetch(SCRIPT_URL, {
   method: "POST",
   mode: "no-cors",
   body: JSON.stringify({
@@ -68,19 +63,7 @@ useEffect(() => {
 })
 .catch(() => alert("Error enviando turno"))
 .finally(() => setEnviando(false));
-      .then(res => res.json())
-      .then(data => {
-        if (data.ok) {
-          onSuccess();
-          alert("Turno confirmado correctamente");
-        } else {
-          alert(data.mensaje || "Error de servidor");
-        }
-      })
-      .catch(() => alert("Error de servidor"))
-      .finally(() => setEnviando(false));
-  }
-
+}
   return (
     <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center">
       <div className="bg-white rounded-xl p-6 w-full max-w-md relative shadow-lg">
