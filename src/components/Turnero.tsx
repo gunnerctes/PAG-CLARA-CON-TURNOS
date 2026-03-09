@@ -54,14 +54,20 @@ useEffect(() => {
     setEnviando(true);
 
     fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        nombre: "Paciente prueba",
-        telefono: "000000000",
-        fechaISO: `${fecha}T${horaSeleccionada}:00`
-      })
-    })
+  method: "POST",
+  mode: "no-cors",
+  body: JSON.stringify({
+    nombre: "Paciente prueba",
+    telefono: "000000000",
+    fechaISO: `${fecha}T${horaSeleccionada}:00`
+  })
+})
+.then(() => {
+  onSuccess();
+  alert("Turno enviado. Si el horario estaba libre se registró.");
+})
+.catch(() => alert("Error enviando turno"))
+.finally(() => setEnviando(false));
       .then(res => res.json())
       .then(data => {
         if (data.ok) {
