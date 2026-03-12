@@ -23,47 +23,59 @@ export default function Turnero({ onClose, onSuccess }: Props) {
   const [loading, setLoading] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
-useEffect(() => {
-  if (typeof window === "undefined") return;
-  if (!fecha) return;
+  useEffect(() => {
+    if (!fecha) return;
 
-  setLoading(true);
-  setHorarios([]);
-  setHoraSeleccionada("");
-  setMensajeDia("");
+    setLoading(true);
+    setHorarios([]);
+    setHoraSeleccionada("");
+    setMensajeDia("");
 
-  fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
-    .then(res => res.json())
-    .then(data => {
-      if (!data.diaValido) {
-        setMensajeDia(data.mensaje || "Día sin atención médica");
+    fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.diaValido) {
+          setMensajeDia(data.mensaje || "Día sin atención médica");
+        } else {
+          setHorarios(data.horarios || []);
+        }
+      })
+      .catch(() => {
+        setMensajeDia("Error al consultar horarios");
+      })
+      .finally(() => setLoading(false));
+  }, [fecha]);
+
+  async function confirmarTurno() {
+    if (!fecha || !horaSeleccionada) return;
+
+    setEnviando(true);
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          nombre: "Paciente prueba",
+          telefono: "000000000",
+          fechaISO: `${fecha}T${horaSeleccionada}:00`
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.ok) {
+        alert("Turno confirmado");
+        onSuccess();
       } else {
-        setHorarios(data.horarios || []);
+        alert(data.mensaje || "Error al confirmar turno");
       }
-    })
-    .catch(() => {
-      setMensajeDia("Error al consultar horarios");
-    })
-    .finally(() => setLoading(false));
-}, [fecha]);
+    } catch (err) {
+      alert("Error de conexión con el servidor");
+    } finally {
+      setEnviando(false);
+    }
+  }
 
-
-  fetch(SCRIPT_URL, {
-  method: "POST",
-  mode: "no-cors",
-  body: JSON.stringify({
-    nombre: "Paciente prueba",
-    telefono: "000000000",
-    fechaISO: `${fecha}T${horaSeleccionada}:00`
-  })
-})
-.then(() => {
-  onSuccess();
-  alert("Turno enviado. Si el horario estaba libre se registró.");
-})
-.catch(() => alert("Error enviando turno"))
-.finally(() => setEnviando(false));
-}
   return (
     <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center">
       <div className="bg-white rounded-xl p-6 w-full max-w-md relative shadow-lg">
