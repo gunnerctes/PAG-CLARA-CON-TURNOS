@@ -2,29 +2,32 @@
 
 import { useEffect, useState } from "react";
 
-const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbymw1qFtD0wUrYvcvQqPJeKYdn_pU-PYho9c9JUZ0-ySG8gZQwTKivqIpUKutoUIJjf/exec";
+const SCRIPT_URL = "TU_URL_DEL_SCRIPT";
 
 type Horario = {
   hora: string;
   disponible: boolean;
 };
 
-type Props = {
-  onClose: () => void;
-  onSuccess: () => void;
-};
+export default function Turnero({ onClose, onSuccess }) {
 
-export default function Turnero({ onClose, onSuccess }: Props) {
-  const [fecha, setFecha] = useState("");
-  const [horarios, setHorarios] = useState<Horario[]>([]);
-  const [mensajeDia, setMensajeDia] = useState("");
-  const [horaSeleccionada, setHoraSeleccionada] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [enviando, setEnviando] = useState(false);
+  const [fecha,setFecha] = useState("");
+  const [horarios,setHorarios] = useState([]);
+  const [horaSeleccionada,setHoraSeleccionada] = useState("");
 
-  useEffect(() => {
-    if (!fecha) return;
+  const [nombre,setNombre] = useState("");
+  const [dni,setDni] = useState("");
+  const [obraSocial,setObraSocial] = useState("");
+  const [telefono,setTelefono] = useState("");
+  const [motivo,setMotivo] = useState("");
+
+  const [mensajeDia,setMensajeDia] = useState("");
+  const [loading,setLoading] = useState(false);
+  const [enviando,setEnviando] = useState(false);
+
+  useEffect(()=>{
+
+    if(!fecha) return;
 
     setLoading(true);
     setHorarios([]);
@@ -32,105 +35,91 @@ export default function Turnero({ onClose, onSuccess }: Props) {
     setMensajeDia("");
 
     fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
-      .then(res => res.json())
-      .then(data => {
-        if (!data.diaValido) {
-          setMensajeDia(data.mensaje || "Día sin atención médica");
-        } else {
-          setHorarios(data.horarios || []);
-        }
-      })
-      .catch(() => {
-        setMensajeDia("Error al consultar horarios");
-      })
-      .finally(() => setLoading(false));
-  }, [fecha]);
+    .then(res=>res.json())
+    .then(data=>{
+      if(!data.diaValido){
+        setMensajeDia(data.mensaje);
+      }else{
+        setHorarios(data.horarios);
+      }
+    })
+    .catch(()=>setMensajeDia("Error consultando horarios"))
+    .finally(()=>setLoading(false));
 
-  async function confirmarTurno() {
-    if (!fecha || !horaSeleccionada) return;
+  },[fecha]);
+
+  async function confirmarTurno(){
+
+    if(!horaSeleccionada) return;
 
     setEnviando(true);
 
-    try {
-      const res = await fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          nombre: "Paciente prueba",
-          telefono: "000000000",
-          fechaISO: `${fecha}T${horaSeleccionada}:00`
+    try{
+
+      const res = await fetch(SCRIPT_URL,{
+        method:"POST",
+        body:JSON.stringify({
+          nombre,
+          dni,
+          obraSocial,
+          telefono,
+          motivo,
+          fechaISO:`${fecha}T${horaSeleccionada}:00`
         })
       });
 
       const data = await res.json();
 
-      if (data.ok) {
+      if(data.ok){
         alert("Turno confirmado");
         onSuccess();
-      } else {
-        alert(data.mensaje || "Error al confirmar turno");
+      }else{
+        alert(data.mensaje);
       }
-    } catch (err) {
-      alert("Error de conexión con el servidor");
-    } finally {
-      setEnviando(false);
+
+    }catch{
+      alert("Error de conexión");
     }
+
+    setEnviando(false);
+
   }
 
-  return (
-    <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md relative shadow-lg">
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-        >
-          ✕
-        </button>
+  return(
+  <div>
 
-        <h2 className="text-xl font-bold mb-4">Turnos médicos</h2>
+  <h2>Turnos médicos</h2>
 
-        <input
-          type="date"
-          value={fecha}
-          onChange={e => setFecha(e.target.value)}
-          className="border p-2 w-full mb-4 rounded"
-        />
+  <input type="date" value={fecha} onChange={e=>setFecha(e.target.value)} />
 
-        {mensajeDia && <p className="text-red-600">{mensajeDia}</p>}
-        {loading && <p>Cargando horarios…</p>}
+  {mensajeDia && <p>{mensajeDia}</p>}
+  {loading && <p>Cargando horarios...</p>}
 
-        {!mensajeDia && horarios.length > 0 && (
-          <div className="flex flex-wrap gap-2 my-4">
-            {horarios.map(h => (
-              <button
-                key={h.hora}
-                disabled={!h.disponible}
-                onClick={() => setHoraSeleccionada(h.hora)}
-                className={`px-4 py-2 rounded font-medium ${
-                  !h.disponible
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : h.hora === horaSeleccionada
-                    ? "bg-green-600 text-white"
-                    : "bg-gray-200 hover:bg-gray-300"
-                }`}
-              >
-                {h.hora}
-              </button>
-            ))}
-          </div>
-        )}
+  {horarios.map(h=>(
+    <button
+      key={h.hora}
+      disabled={!h.disponible}
+      onClick={()=>setHoraSeleccionada(h.hora)}
+    >
+      {h.hora}
+    </button>
+  ))}
 
-        <button
-          onClick={confirmarTurno}
-          disabled={!horaSeleccionada || enviando}
-          className={`w-full py-3 rounded-lg mt-4 font-bold text-white ${
-            !horaSeleccionada || enviando
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700"
-          }`}
-        >
-          {enviando ? "Confirmando…" : "Confirmar turno"}
-        </button>
-      </div>
-    </div>
+  <input placeholder="Nombre y apellido" value={nombre} onChange={e=>setNombre(e.target.value)} />
+
+  <input placeholder="DNI" value={dni} onChange={e=>setDni(e.target.value)} />
+
+  <input placeholder="Obra social" value={obraSocial} onChange={e=>setObraSocial(e.target.value)} />
+
+  <input placeholder="Teléfono" value={telefono} onChange={e=>setTelefono(e.target.value)} />
+
+  <textarea placeholder="Motivo de consulta" value={motivo} onChange={e=>setMotivo(e.target.value)} />
+
+  <button onClick={confirmarTurno} disabled={enviando}>
+  Confirmar turno
+  </button>
+
+  </div>
   );
+
 }
