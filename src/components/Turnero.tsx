@@ -37,13 +37,23 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
     fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
     .then(res=>res.json())
     .then(data=>{
+
       if(!data.diaValido){
-        setMensajeDia(data.mensaje);
-      }else{
-        setHorarios(data.horarios);
+        setMensajeDia(data.mensaje || "Este día no hay atención");
+        setHorarios([]);
+        return;
       }
+
+      // FILTRAMOS HORARIOS VALIDOS
+      const horariosValidos = data.horarios.filter((h:Horario)=>h.hora !== "20:00");
+
+      setHorarios(horariosValidos);
+
     })
-    .catch(()=>setMensajeDia("Error consultando horarios"))
+    .catch(()=>{
+      setMensajeDia("Error consultando horarios");
+      setHorarios([]);
+    })
     .finally(()=>setLoading(false));
 
   },[fecha]);
@@ -55,12 +65,20 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
       return;
     }
 
+    if(!nombre || !telefono){
+      alert("Complete nombre y teléfono");
+      return;
+    }
+
     setEnviando(true);
 
     try{
 
       const res = await fetch(SCRIPT_URL,{
         method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
         body:JSON.stringify({
           nombre,
           dni,
@@ -77,7 +95,7 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         alert("Turno confirmado");
         onSuccess();
       }else{
-        alert(data.mensaje);
+        alert(data.mensaje || "No se pudo confirmar el turno");
       }
 
     }catch{
@@ -103,20 +121,27 @@ onChange={e=>setFecha(e.target.value)}
 className="border p-2 w-full mb-3"
 />
 
-{mensajeDia && <p className="text-red-500">{mensajeDia}</p>}
-{loading && <p>Cargando horarios...</p>}
+{mensajeDia && <p className="text-red-500 mb-3">{mensajeDia}</p>}
+{loading && <p className="mb-3">Cargando horarios...</p>}
 
 <div className="flex flex-wrap gap-2 mb-4">
 
 {horarios.map(h=>(
+
 <button
 key={h.hora}
 disabled={!h.disponible}
 onClick={()=>setHoraSeleccionada(h.hora)}
-className="border px-3 py-1 rounded"
+className={`px-3 py-2 rounded border ${
+  horaSeleccionada === h.hora
+  ? "bg-blue-600 text-white"
+  : "bg-white"
+}`}
 >
 {h.hora}
+
 </button>
+
 ))}
 
 </div>
@@ -161,7 +186,7 @@ className="border p-2 w-full mb-4"
 <button
 onClick={confirmarTurno}
 disabled={enviando}
-className="bg-blue-600 text-white px-4 py-2 rounded"
+className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
 >
 Confirmar turno
 </button>
