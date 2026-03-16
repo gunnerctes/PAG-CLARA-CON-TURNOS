@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbymw1qFtD0wUrYvcvQqPJeKYdn_pU-PYho9c9JUZ0-ySG8gZQwTKivqIpUKutoUIJjf/exec";
+const SCRIPT_URL = "TU_URL_DEL_SCRIPT";
 
 type Horario = {
   hora: string;
@@ -89,75 +89,96 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
   }
 
   return(
-    <div>
 
-      <h2>Turnos médicos</h2>
+<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
-      <input
-        type="date"
-        value={fecha}
-        onChange={e=>setFecha(e.target.value)}
-      />
+<div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg">
 
-      {mensajeDia && <p>{mensajeDia}</p>}
-      {loading && <p>Cargando horarios...</p>}
+<h2 className="text-xl font-bold mb-4">Solicitar turno</h2>
 
-      <div>
+<input
+type="date"
+value={fecha}
+onChange={e=>setFecha(e.target.value)}
+className="border p-2 w-full mb-3"
+/>
 
-        {horarios.map(h=>(
-          <button
-            key={h.hora}
-            disabled={!h.disponible}
-            onClick={()=>setHoraSeleccionada(h.hora)}
-          >
-            {h.hora}
-          </button>
-        ))}
+{mensajeDia && <p className="text-red-500">{mensajeDia}</p>}
+{loading && <p>Cargando horarios...</p>}
 
-      </div>
+<div className="flex flex-wrap gap-2 mb-4">
 
-      <input
-        placeholder="Nombre y apellido"
-        value={nombre}
-        onChange={e=>setNombre(e.target.value)}
-      />
+{horarios.map(h=>(
+<button
+key={h.hora}
+disabled={!h.disponible}
+onClick={()=>setHoraSeleccionada(h.hora)}
+className="border px-3 py-1 rounded"
+>
+{h.hora}
+</button>
+))}
 
-      <input
-        placeholder="DNI"
-        value={dni}
-        onChange={e=>setDni(e.target.value)}
-      />
+</div>
 
-      <input
-        placeholder="Obra social"
-        value={obraSocial}
-        onChange={e=>setObraSocial(e.target.value)}
-      />
+<input
+placeholder="Nombre y apellido"
+value={nombre}
+onChange={e=>setNombre(e.target.value)}
+className="border p-2 w-full mb-2"
+/>
 
-      <input
-        placeholder="Teléfono"
-        value={telefono}
-        onChange={e=>setTelefono(e.target.value)}
-      />
+<input
+placeholder="DNI"
+value={dni}
+onChange={e=>setDni(e.target.value)}
+className="border p-2 w-full mb-2"
+/>
 
-      <textarea
-        placeholder="Motivo de consulta"
-        value={motivo}
-        onChange={e=>setMotivo(e.target.value)}
-      />
+<input
+placeholder="Obra social"
+value={obraSocial}
+onChange={e=>setObraSocial(e.target.value)}
+className="border p-2 w-full mb-2"
+/>
 
-      <button
-        onClick={confirmarTurno}
-        disabled={enviando}
-      >
-        Confirmar turno
-      </button>
+<input
+placeholder="Teléfono"
+value={telefono}
+onChange={e=>setTelefono(e.target.value)}
+className="border p-2 w-full mb-2"
+/>
 
-      <button onClick={onClose}>
-        Cancelar
-      </button>
+<textarea
+placeholder="Motivo de consulta"
+value={motivo}
+onChange={e=>setMotivo(e.target.value)}
+className="border p-2 w-full mb-4"
+/>
 
-    </div>
+<div className="flex gap-2">
+
+<button
+onClick={confirmarTurno}
+disabled={enviando}
+className="bg-blue-600 text-white px-4 py-2 rounded"
+>
+Confirmar turno
+</button>
+
+<button
+onClick={onClose}
+className="bg-gray-300 px-4 py-2 rounded"
+>
+Cancelar
+</button>
+
+</div>
+
+</div>
+
+</div>
+
   );
 
 }
