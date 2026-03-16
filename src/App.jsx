@@ -130,7 +130,7 @@ Ubicación del Consultorio
 <div className="max-w-3xl mx-auto">
 
 <iframe
-src="https://www.google.com/maps?q=Corrientes+Argentina&output=embed"
+src="https://www.google.com/maps?q=Corrientes+Argentina+Lavalle640&output=embed"
 className="w-full h-80 rounded-xl shadow"
 loading="lazy"
 ></iframe>
@@ -144,7 +144,7 @@ loading="lazy"
 <footer className="mt-24 text-center text-gray-500 pb-10">
 
 <p>
-© {new Date().getFullYear()} Consultorio Dra. Balbuena
+© {new Date().getFullYear()} Desarrollado por Innova Soluciones
 </p>
 
 </footer>
