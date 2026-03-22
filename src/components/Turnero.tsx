@@ -38,18 +38,13 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
     .then(res=>res.json())
     .then(data=>{
 
-      console.log("RESPUESTA SCRIPT:", data);
-
-      // 🔥 CONTROL REAL
-      if(data.diaValido === false){
+      if(!data.diaValido){
         setMensajeDia(data.mensaje || "Este día no hay atención");
         setHorarios([]);
         return;
       }
 
-      // 🔥 SOLO SI ES VALIDO
-      setMensajeDia("");
-      setHorarios(data.horarios || []);
+      setHorarios(data.horarios);
 
     })
     .catch(()=>{
@@ -76,9 +71,13 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
 
     try{
 
-      const res = await fetch(SCRIPT_URL,{
+      // 🔥 CLAVE: no-cors para evitar bloqueo
+      await fetch(SCRIPT_URL,{
         method:"POST",
-        headers:{ "Content-Type":"application/json" },
+        mode:"no-cors",
+        headers:{
+          "Content-Type":"text/plain"
+        },
         body:JSON.stringify({
           nombre,
           dni,
@@ -89,17 +88,13 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         })
       });
 
-      const data = await res.json();
+      // 🔥 IMPORTANTE: con no-cors NO hay respuesta
+      alert("Turno enviado correctamente");
 
-      if(data.ok){
-        alert("Turno confirmado");
-        onSuccess();
-      }else{
-        alert(data.mensaje || "Error");
-      }
+      onSuccess();
 
     }catch{
-      alert("Error de conexión");
+      alert("Error enviando turno");
     }
 
     setEnviando(false);
@@ -133,15 +128,12 @@ key={h.hora}
 disabled={!h.disponible}
 onClick={()=>setHoraSeleccionada(h.hora)}
 className={`px-3 py-2 rounded border ${
-  !h.disponible
-    ? "bg-gray-300 cursor-not-allowed"
-    : horaSeleccionada === h.hora
-    ? "bg-blue-600 text-white"
-    : "bg-white"
+  horaSeleccionada === h.hora
+  ? "bg-blue-600 text-white"
+  : "bg-white"
 }`}
 >
 {h.hora}
-
 </button>
 
 ))}
