@@ -22,6 +22,9 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
   const [motivo,setMotivo] = useState("");
 
   const [mensajeDia,setMensajeDia] = useState("");
+  const [mensajeOK,setMensajeOK] = useState("");
+  const [mensajeError,setMensajeError] = useState("");
+
   const [loading,setLoading] = useState(false);
   const [enviando,setEnviando] = useState(false);
 
@@ -33,6 +36,8 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
     setHorarios([]);
     setHoraSeleccionada("");
     setMensajeDia("");
+    setMensajeOK("");
+    setMensajeError("");
 
     fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
     .then(res=>res.json())
@@ -44,10 +49,7 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         return;
       }
 
-      // 🔥 SOLO HORARIOS DISPONIBLES
-      const disponibles = data.horarios.filter((h:Horario)=>h.disponible);
-
-      setHorarios(disponibles);
+      setHorarios(data.horarios);
 
     })
     .catch(()=>{
@@ -60,13 +62,16 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
 
   async function confirmarTurno(){
 
+    setMensajeOK("");
+    setMensajeError("");
+
     if(!horaSeleccionada){
-      alert("Seleccione un horario");
+      setMensajeError("Seleccione un horario");
       return;
     }
 
     if(!nombre || !telefono){
-      alert("Complete nombre y teléfono");
+      setMensajeError("Complete nombre y teléfono");
       return;
     }
 
@@ -77,9 +82,6 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
       await fetch(SCRIPT_URL,{
         method:"POST",
         mode:"no-cors",
-        headers:{
-          "Content-Type":"text/plain"
-        },
         body:JSON.stringify({
           nombre,
           dni,
@@ -90,11 +92,11 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         })
       });
 
-      alert("Turno confirmado");
+      setMensajeOK("Turno enviado correctamente ✔");
       onSuccess();
 
     }catch{
-      alert("Error enviando turno");
+      setMensajeError("Error enviando turno");
     }
 
     setEnviando(false);
@@ -119,19 +121,13 @@ className="border p-2 w-full mb-3"
 {mensajeDia && <p className="text-red-500 mb-3">{mensajeDia}</p>}
 {loading && <p className="mb-3">Cargando horarios...</p>}
 
-{/* 🔥 MENSAJE SI NO HAY TURNOS */}
-{!loading && horarios.length === 0 && fecha && !mensajeDia && (
-  <p className="text-gray-500 mb-3">
-    No hay turnos disponibles para este día
-  </p>
-)}
-
 <div className="flex flex-wrap gap-2 mb-4">
 
 {horarios.map(h=>(
 
 <button
 key={h.hora}
+disabled={!h.disponible}
 onClick={()=>setHoraSeleccionada(h.hora)}
 className={`px-3 py-2 rounded border ${
   horaSeleccionada === h.hora
@@ -180,6 +176,16 @@ value={motivo}
 onChange={e=>setMotivo(e.target.value)}
 className="border p-2 w-full mb-4"
 />
+
+{/* MENSAJES VISUALES */}
+
+{mensajeError && (
+<p className="text-red-600 font-semibold mb-3">{mensajeError}</p>
+)}
+
+{mensajeOK && (
+<p className="text-green-600 font-semibold mb-3">{mensajeOK}</p>
+)}
 
 <div className="flex gap-2">
 
