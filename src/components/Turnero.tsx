@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwMlXKGTt_2ar5TgvPtVZGFw00jkUwEZKiY52ESORAGKhFeAA74KqF36DCt5Thq-D0yg/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVlxDvg0kkRQ_ovzPSK2pIpajiLnOArCCwGwMCyTPbP8-B8is_cFZISYgsXowhuzQtXg/exec"; // 👈 ACÁ VA TU URL
 
 type Horario = {
   hora: string;
@@ -44,9 +44,7 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         return;
       }
 
-      const horariosValidos = data.horarios.filter((h:Horario)=>h.hora !== "20:00");
-
-      setHorarios(horariosValidos);
+      setHorarios(data.horarios);
 
     })
     .catch(()=>{
@@ -73,9 +71,11 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
 
     try{
 
-      await fetch(SCRIPT_URL,{
+      const res = await fetch(SCRIPT_URL,{
         method:"POST",
-        mode:"no-cors",
+        headers:{
+          "Content-Type":"application/json"
+        },
         body:JSON.stringify({
           nombre,
           dni,
@@ -86,11 +86,17 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         })
       });
 
-      alert("Turno enviado correctamente");
-      onSuccess();
+      const data = await res.json();
+
+      if(data.ok){
+        alert("Turno confirmado");
+        onSuccess();
+      }else{
+        alert(data.mensaje);
+      }
 
     }catch{
-      alert("Error enviando turno");
+      alert("Error de conexión");
     }
 
     setEnviando(false);
