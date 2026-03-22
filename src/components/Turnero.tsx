@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybqlqepXUe8ACUQwfb8s9sfrOsYfjLMQ0NRAWUvwaGrVEdjEuYjEYdo9eaiX6VETQXoQ/exec";
 
+// 👉 TU NUMERO (sin + ni espacios)
+const WHATSAPP_NUMERO = "5493794777580";
+
 type Horario = {
   hora: string;
   disponible: boolean;
@@ -49,7 +52,6 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         return;
       }
 
-      // 🔥 SOLO DISPONIBLES
       const disponibles = data.horarios.filter((h:Horario)=>h.disponible);
 
       setHorarios(disponibles);
@@ -95,21 +97,29 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         })
       });
 
-      // 🔥 MOSTRAR CONFIRMACIÓN
+      // ✅ MENSAJE VISUAL
       setMensajeOK("Turno confirmado correctamente ✔");
 
-      // 🔥 LIMPIAR FORM
-      setNombre("");
-      setDni("");
-      setObraSocial("");
-      setTelefono("");
-      setMotivo("");
-      setHoraSeleccionada("");
+      // ✅ MENSAJE WHATSAPP
+      const mensaje = `Hola, confirmo mi turno médico:
 
-      // 🔥 REFRESCAR HORARIOS
-      setFecha(prev => prev);
+Nombre: ${nombre}
+DNI: ${dni}
+Obra Social: ${obraSocial}
+Teléfono: ${telefono}
 
-      // 🔥 CERRAR DESPUÉS DE 2 SEGUNDOS
+Fecha: ${fecha}
+Hora: ${horaSeleccionada}
+
+Motivo: ${motivo}
+
+Gracias.`;
+
+      const url = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(mensaje)}`;
+
+      // 🔥 ABRIR WHATSAPP
+      window.open(url, "_blank");
+
       setTimeout(()=>{
         onSuccess();
       },2000);
@@ -140,7 +150,6 @@ className="border p-2 w-full mb-3"
 {mensajeDia && <p className="text-red-500 mb-3">{mensajeDia}</p>}
 {loading && <p className="mb-3">Cargando horarios...</p>}
 
-{/* SIN TURNOS */}
 {!loading && horarios.length === 0 && fecha && !mensajeDia && (
   <p className="text-gray-500 mb-3">
     No hay turnos disponibles
@@ -167,65 +176,22 @@ className={`px-3 py-2 rounded border ${
 
 </div>
 
-<input
-placeholder="Nombre y apellido"
-value={nombre}
-onChange={e=>setNombre(e.target.value)}
-className="border p-2 w-full mb-2"
-/>
+<input placeholder="Nombre y apellido" value={nombre} onChange={e=>setNombre(e.target.value)} className="border p-2 w-full mb-2"/>
+<input placeholder="DNI" value={dni} onChange={e=>setDni(e.target.value)} className="border p-2 w-full mb-2"/>
+<input placeholder="Obra social" value={obraSocial} onChange={e=>setObraSocial(e.target.value)} className="border p-2 w-full mb-2"/>
+<input placeholder="Teléfono" value={telefono} onChange={e=>setTelefono(e.target.value)} className="border p-2 w-full mb-2"/>
+<textarea placeholder="Motivo de consulta" value={motivo} onChange={e=>setMotivo(e.target.value)} className="border p-2 w-full mb-4"/>
 
-<input
-placeholder="DNI"
-value={dni}
-onChange={e=>setDni(e.target.value)}
-className="border p-2 w-full mb-2"
-/>
-
-<input
-placeholder="Obra social"
-value={obraSocial}
-onChange={e=>setObraSocial(e.target.value)}
-className="border p-2 w-full mb-2"
-/>
-
-<input
-placeholder="Teléfono"
-value={telefono}
-onChange={e=>setTelefono(e.target.value)}
-className="border p-2 w-full mb-2"
-/>
-
-<textarea
-placeholder="Motivo de consulta"
-value={motivo}
-onChange={e=>setMotivo(e.target.value)}
-className="border p-2 w-full mb-4"
-/>
-
-{/* MENSAJES */}
-
-{mensajeError && (
-<p className="text-red-600 font-semibold mb-3">{mensajeError}</p>
-)}
-
-{mensajeOK && (
-<p className="text-green-600 font-semibold mb-3">{mensajeOK}</p>
-)}
+{mensajeError && <p className="text-red-600 font-semibold mb-3">{mensajeError}</p>}
+{mensajeOK && <p className="text-green-600 font-semibold mb-3">{mensajeOK}</p>}
 
 <div className="flex gap-2">
 
-<button
-onClick={confirmarTurno}
-disabled={enviando}
-className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
->
+<button onClick={confirmarTurno} disabled={enviando} className="bg-blue-600 text-white px-4 py-2 rounded">
 Confirmar turno
 </button>
 
-<button
-onClick={onClose}
-className="bg-gray-300 px-4 py-2 rounded"
->
+<button onClick={onClose} className="bg-gray-300 px-4 py-2 rounded">
 Cancelar
 </button>
 
