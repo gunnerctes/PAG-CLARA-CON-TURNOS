@@ -4,9 +4,6 @@ import { useEffect, useState } from "react";
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybqlqepXUe8ACUQwfb8s9sfrOsYfjLMQ0NRAWUvwaGrVEdjEuYjEYdo9eaiX6VETQXoQ/exec";
 
-// 👉 TU NUMERO (sin + ni espacios)
-const WHATSAPP_NUMERO = "5493794777580";
-
 type Horario = {
   hora: string;
   disponible: boolean;
@@ -25,8 +22,9 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
   const [motivo,setMotivo] = useState("");
 
   const [mensajeDia,setMensajeDia] = useState("");
-  const [mensajeOK,setMensajeOK] = useState("");
   const [mensajeError,setMensajeError] = useState("");
+
+  const [confirmado,setConfirmado] = useState(false);
 
   const [loading,setLoading] = useState(false);
   const [enviando,setEnviando] = useState(false);
@@ -39,7 +37,6 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
     setHorarios([]);
     setHoraSeleccionada("");
     setMensajeDia("");
-    setMensajeOK("");
     setMensajeError("");
 
     fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
@@ -67,7 +64,6 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
 
   async function confirmarTurno(){
 
-    setMensajeOK("");
     setMensajeError("");
 
     if(!horaSeleccionada){
@@ -97,32 +93,8 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         })
       });
 
-      // ✅ MENSAJE VISUAL
-      setMensajeOK("Turno confirmado correctamente ✔");
-
-      // ✅ MENSAJE WHATSAPP
-      const mensaje = `Hola, confirmo mi turno médico:
-
-Nombre: ${nombre}
-DNI: ${dni}
-Obra Social: ${obraSocial}
-Teléfono: ${telefono}
-
-Fecha: ${fecha}
-Hora: ${horaSeleccionada}
-
-Motivo: ${motivo}
-
-Gracias.`;
-
-      const url = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(mensaje)}`;
-
-      // 🔥 ABRIR WHATSAPP
-      window.open(url, "_blank");
-
-      setTimeout(()=>{
-        onSuccess();
-      },2000);
+      // 🔥 ACTIVA CONFIRMACIÓN VISUAL
+      setConfirmado(true);
 
     }catch{
       setMensajeError("Error enviando turno");
@@ -137,6 +109,44 @@ Gracias.`;
 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
 <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg">
+
+{/* ================= CONFIRMACIÓN ================= */}
+
+{confirmado ? (
+
+<div className="text-center">
+
+<h2 className="text-2xl font-bold text-green-600 mb-4">
+Turno confirmado ✔
+</h2>
+
+<p className="mb-2">
+<strong>Fecha:</strong> {fecha}
+</p>
+
+<p className="mb-4">
+<strong>Hora:</strong> {horaSeleccionada}
+</p>
+
+<p className="text-gray-600 mb-6">
+Su turno ha sido registrado correctamente.  
+Ante cualquier duda comuníquese por WhatsApp.
+</p>
+
+<button
+onClick={onClose}
+className="bg-blue-600 text-white px-6 py-3 rounded"
+>
+Cerrar
+</button>
+
+</div>
+
+) : (
+
+/* ================= FORMULARIO ================= */
+
+<>
 
 <h2 className="text-xl font-bold mb-4">Solicitar turno</h2>
 
@@ -182,20 +192,32 @@ className={`px-3 py-2 rounded border ${
 <input placeholder="Teléfono" value={telefono} onChange={e=>setTelefono(e.target.value)} className="border p-2 w-full mb-2"/>
 <textarea placeholder="Motivo de consulta" value={motivo} onChange={e=>setMotivo(e.target.value)} className="border p-2 w-full mb-4"/>
 
-{mensajeError && <p className="text-red-600 font-semibold mb-3">{mensajeError}</p>}
-{mensajeOK && <p className="text-green-600 font-semibold mb-3">{mensajeOK}</p>}
+{mensajeError && (
+<p className="text-red-600 font-semibold mb-3">{mensajeError}</p>
+)}
 
 <div className="flex gap-2">
 
-<button onClick={confirmarTurno} disabled={enviando} className="bg-blue-600 text-white px-4 py-2 rounded">
+<button
+onClick={confirmarTurno}
+disabled={enviando}
+className="bg-blue-600 text-white px-4 py-2 rounded"
+>
 Confirmar turno
 </button>
 
-<button onClick={onClose} className="bg-gray-300 px-4 py-2 rounded">
+<button
+onClick={onClose}
+className="bg-gray-300 px-4 py-2 rounded"
+>
 Cancelar
 </button>
 
 </div>
+
+</>
+
+)}
 
 </div>
 
