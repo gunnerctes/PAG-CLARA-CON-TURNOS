@@ -49,7 +49,10 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         return;
       }
 
-      setHorarios(data.horarios);
+      // 🔥 SOLO DISPONIBLES
+      const disponibles = data.horarios.filter((h:Horario)=>h.disponible);
+
+      setHorarios(disponibles);
 
     })
     .catch(()=>{
@@ -92,8 +95,24 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         })
       });
 
-      setMensajeOK("Turno enviado correctamente ✔");
-      onSuccess();
+      // 🔥 MOSTRAR CONFIRMACIÓN
+      setMensajeOK("Turno confirmado correctamente ✔");
+
+      // 🔥 LIMPIAR FORM
+      setNombre("");
+      setDni("");
+      setObraSocial("");
+      setTelefono("");
+      setMotivo("");
+      setHoraSeleccionada("");
+
+      // 🔥 REFRESCAR HORARIOS
+      setFecha(prev => prev);
+
+      // 🔥 CERRAR DESPUÉS DE 2 SEGUNDOS
+      setTimeout(()=>{
+        onSuccess();
+      },2000);
 
     }catch{
       setMensajeError("Error enviando turno");
@@ -121,13 +140,19 @@ className="border p-2 w-full mb-3"
 {mensajeDia && <p className="text-red-500 mb-3">{mensajeDia}</p>}
 {loading && <p className="mb-3">Cargando horarios...</p>}
 
+{/* SIN TURNOS */}
+{!loading && horarios.length === 0 && fecha && !mensajeDia && (
+  <p className="text-gray-500 mb-3">
+    No hay turnos disponibles
+  </p>
+)}
+
 <div className="flex flex-wrap gap-2 mb-4">
 
 {horarios.map(h=>(
 
 <button
 key={h.hora}
-disabled={!h.disponible}
 onClick={()=>setHoraSeleccionada(h.hora)}
 className={`px-3 py-2 rounded border ${
   horaSeleccionada === h.hora
@@ -177,7 +202,7 @@ onChange={e=>setMotivo(e.target.value)}
 className="border p-2 w-full mb-4"
 />
 
-{/* MENSAJES VISUALES */}
+{/* MENSAJES */}
 
 {mensajeError && (
 <p className="text-red-600 font-semibold mb-3">{mensajeError}</p>
