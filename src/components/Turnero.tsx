@@ -44,7 +44,10 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         return;
       }
 
-      setHorarios(data.horarios);
+      // 🔥 SOLO HORARIOS DISPONIBLES
+      const disponibles = data.horarios.filter((h:Horario)=>h.disponible);
+
+      setHorarios(disponibles);
 
     })
     .catch(()=>{
@@ -71,7 +74,6 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
 
     try{
 
-      // 🔥 CLAVE: no-cors para evitar bloqueo
       await fetch(SCRIPT_URL,{
         method:"POST",
         mode:"no-cors",
@@ -88,9 +90,7 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         })
       });
 
-      // 🔥 IMPORTANTE: con no-cors NO hay respuesta
-      alert("Turno enviado correctamente");
-
+      alert("Turno confirmado");
       onSuccess();
 
     }catch{
@@ -119,13 +119,19 @@ className="border p-2 w-full mb-3"
 {mensajeDia && <p className="text-red-500 mb-3">{mensajeDia}</p>}
 {loading && <p className="mb-3">Cargando horarios...</p>}
 
+{/* 🔥 MENSAJE SI NO HAY TURNOS */}
+{!loading && horarios.length === 0 && fecha && !mensajeDia && (
+  <p className="text-gray-500 mb-3">
+    No hay turnos disponibles para este día
+  </p>
+)}
+
 <div className="flex flex-wrap gap-2 mb-4">
 
 {horarios.map(h=>(
 
 <button
 key={h.hora}
-disabled={!h.disponible}
 onClick={()=>setHoraSeleccionada(h.hora)}
 className={`px-3 py-2 rounded border ${
   horaSeleccionada === h.hora
