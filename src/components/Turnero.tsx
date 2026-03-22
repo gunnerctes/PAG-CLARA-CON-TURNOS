@@ -38,16 +38,23 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
     .then(res=>res.json())
     .then(data=>{
 
-      if(!data.diaValido){
+      console.log("RESPUESTA SCRIPT:", data);
+
+      // 🔥 CONTROL REAL
+      if(data.diaValido === false){
         setMensajeDia(data.mensaje || "Este día no hay atención");
+        setHorarios([]);
         return;
       }
 
+      // 🔥 SOLO SI ES VALIDO
+      setMensajeDia("");
       setHorarios(data.horarios || []);
 
     })
     .catch(()=>{
       setMensajeDia("Error consultando horarios");
+      setHorarios([]);
     })
     .finally(()=>setLoading(false));
 
@@ -69,28 +76,30 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
 
     try{
 
-      const fechaObj = new Date(fecha);
-      const dia = fechaObj.getDay(); // 🔴 CLAVE
-
-      await fetch(SCRIPT_URL,{
+      const res = await fetch(SCRIPT_URL,{
         method:"POST",
-        mode:"no-cors",
+        headers:{ "Content-Type":"application/json" },
         body:JSON.stringify({
           nombre,
           dni,
           obraSocial,
           telefono,
           motivo,
-          fechaISO:`${fecha}T${horaSeleccionada}:00`,
-          dia
+          fechaISO:`${fecha}T${horaSeleccionada}:00`
         })
       });
 
-      alert("Turno enviado correctamente");
-      onSuccess();
+      const data = await res.json();
+
+      if(data.ok){
+        alert("Turno confirmado");
+        onSuccess();
+      }else{
+        alert(data.mensaje || "Error");
+      }
 
     }catch{
-      alert("Error enviando turno");
+      alert("Error de conexión");
     }
 
     setEnviando(false);
@@ -124,32 +133,70 @@ key={h.hora}
 disabled={!h.disponible}
 onClick={()=>setHoraSeleccionada(h.hora)}
 className={`px-3 py-2 rounded border ${
-  horaSeleccionada === h.hora
-  ? "bg-blue-600 text-white"
-  : "bg-white"
+  !h.disponible
+    ? "bg-gray-300 cursor-not-allowed"
+    : horaSeleccionada === h.hora
+    ? "bg-blue-600 text-white"
+    : "bg-white"
 }`}
 >
 {h.hora}
+
 </button>
 
 ))}
 
 </div>
 
-<input placeholder="Nombre y apellido" value={nombre} onChange={e=>setNombre(e.target.value)} className="border p-2 w-full mb-2"/>
-<input placeholder="DNI" value={dni} onChange={e=>setDni(e.target.value)} className="border p-2 w-full mb-2"/>
-<input placeholder="Obra social" value={obraSocial} onChange={e=>setObraSocial(e.target.value)} className="border p-2 w-full mb-2"/>
-<input placeholder="Teléfono" value={telefono} onChange={e=>setTelefono(e.target.value)} className="border p-2 w-full mb-2"/>
+<input
+placeholder="Nombre y apellido"
+value={nombre}
+onChange={e=>setNombre(e.target.value)}
+className="border p-2 w-full mb-2"
+/>
 
-<textarea placeholder="Motivo de consulta" value={motivo} onChange={e=>setMotivo(e.target.value)} className="border p-2 w-full mb-4"/>
+<input
+placeholder="DNI"
+value={dni}
+onChange={e=>setDni(e.target.value)}
+className="border p-2 w-full mb-2"
+/>
+
+<input
+placeholder="Obra social"
+value={obraSocial}
+onChange={e=>setObraSocial(e.target.value)}
+className="border p-2 w-full mb-2"
+/>
+
+<input
+placeholder="Teléfono"
+value={telefono}
+onChange={e=>setTelefono(e.target.value)}
+className="border p-2 w-full mb-2"
+/>
+
+<textarea
+placeholder="Motivo de consulta"
+value={motivo}
+onChange={e=>setMotivo(e.target.value)}
+className="border p-2 w-full mb-4"
+/>
 
 <div className="flex gap-2">
 
-<button onClick={confirmarTurno} disabled={enviando} className="bg-blue-600 text-white px-4 py-2 rounded">
+<button
+onClick={confirmarTurno}
+disabled={enviando}
+className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+>
 Confirmar turno
 </button>
 
-<button onClick={onClose} className="bg-gray-300 px-4 py-2 rounded">
+<button
+onClick={onClose}
+className="bg-gray-300 px-4 py-2 rounded"
+>
 Cancelar
 </button>
 
