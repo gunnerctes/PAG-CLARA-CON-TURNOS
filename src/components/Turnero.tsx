@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVlxDvg0kkRQ_ovzPSK2pIpajiLnOArCCwGwMCyTPbP8-B8is_cFZISYgsXowhuzQtXg/exec"; // 👈 ACÁ VA TU URL
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVlxDvg0kkRQ_ovzPSK2pIpajiLnOArCCwGwMCyTPbP8-B8is_cFZISYgsXowhuzQtXg/exec";
 
 type Horario = {
   hora: string;
@@ -40,16 +40,14 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
 
       if(!data.diaValido){
         setMensajeDia(data.mensaje || "Este día no hay atención");
-        setHorarios([]);
         return;
       }
 
-      setHorarios(data.horarios);
+      setHorarios(data.horarios || []);
 
     })
     .catch(()=>{
       setMensajeDia("Error consultando horarios");
-      setHorarios([]);
     })
     .finally(()=>setLoading(false));
 
@@ -71,32 +69,28 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
 
     try{
 
-      const res = await fetch(SCRIPT_URL,{
+      const fechaObj = new Date(fecha);
+      const dia = fechaObj.getDay(); // 🔴 CLAVE
+
+      await fetch(SCRIPT_URL,{
         method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
+        mode:"no-cors",
         body:JSON.stringify({
           nombre,
           dni,
           obraSocial,
           telefono,
           motivo,
-          fechaISO:`${fecha}T${horaSeleccionada}:00`
+          fechaISO:`${fecha}T${horaSeleccionada}:00`,
+          dia
         })
       });
 
-      const data = await res.json();
-
-      if(data.ok){
-        alert("Turno confirmado");
-        onSuccess();
-      }else{
-        alert(data.mensaje);
-      }
+      alert("Turno enviado correctamente");
+      onSuccess();
 
     }catch{
-      alert("Error de conexión");
+      alert("Error enviando turno");
     }
 
     setEnviando(false);
@@ -136,62 +130,26 @@ className={`px-3 py-2 rounded border ${
 }`}
 >
 {h.hora}
-
 </button>
 
 ))}
 
 </div>
 
-<input
-placeholder="Nombre y apellido"
-value={nombre}
-onChange={e=>setNombre(e.target.value)}
-className="border p-2 w-full mb-2"
-/>
+<input placeholder="Nombre y apellido" value={nombre} onChange={e=>setNombre(e.target.value)} className="border p-2 w-full mb-2"/>
+<input placeholder="DNI" value={dni} onChange={e=>setDni(e.target.value)} className="border p-2 w-full mb-2"/>
+<input placeholder="Obra social" value={obraSocial} onChange={e=>setObraSocial(e.target.value)} className="border p-2 w-full mb-2"/>
+<input placeholder="Teléfono" value={telefono} onChange={e=>setTelefono(e.target.value)} className="border p-2 w-full mb-2"/>
 
-<input
-placeholder="DNI"
-value={dni}
-onChange={e=>setDni(e.target.value)}
-className="border p-2 w-full mb-2"
-/>
-
-<input
-placeholder="Obra social"
-value={obraSocial}
-onChange={e=>setObraSocial(e.target.value)}
-className="border p-2 w-full mb-2"
-/>
-
-<input
-placeholder="Teléfono"
-value={telefono}
-onChange={e=>setTelefono(e.target.value)}
-className="border p-2 w-full mb-2"
-/>
-
-<textarea
-placeholder="Motivo de consulta"
-value={motivo}
-onChange={e=>setMotivo(e.target.value)}
-className="border p-2 w-full mb-4"
-/>
+<textarea placeholder="Motivo de consulta" value={motivo} onChange={e=>setMotivo(e.target.value)} className="border p-2 w-full mb-4"/>
 
 <div className="flex gap-2">
 
-<button
-onClick={confirmarTurno}
-disabled={enviando}
-className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
->
+<button onClick={confirmarTurno} disabled={enviando} className="bg-blue-600 text-white px-4 py-2 rounded">
 Confirmar turno
 </button>
 
-<button
-onClick={onClose}
-className="bg-gray-300 px-4 py-2 rounded"
->
+<button onClick={onClose} className="bg-gray-300 px-4 py-2 rounded">
 Cancelar
 </button>
 
