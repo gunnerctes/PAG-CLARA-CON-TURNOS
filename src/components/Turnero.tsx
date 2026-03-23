@@ -24,8 +24,10 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
   const [mensajeDia,setMensajeDia] = useState("");
   const [loading,setLoading] = useState(false);
   const [enviando,setEnviando] = useState(false);
-  const [confirmado,setConfirmado] = useState(false);
 
+  // =========================
+  // CARGA HORARIOS
+  // =========================
   useEffect(()=>{
 
     if(!fecha) return;
@@ -41,7 +43,6 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
 
       if(!data.diaValido){
         setMensajeDia(data.mensaje || "Este día no hay atención");
-        setHorarios([]);
         return;
       }
 
@@ -50,31 +51,55 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
     })
     .catch(()=>{
       setMensajeDia("Error consultando horarios");
-      setHorarios([]);
     })
     .finally(()=>setLoading(false));
 
   },[fecha]);
 
-  async function confirmarTurno(){
+  // =========================
+  // VALIDACIONES
+  // =========================
+  function validar(){
+
+    if(!nombre.trim() || nombre.trim().split(" ").length < 2){
+      alert("Ingrese nombre y apellido");
+      return false;
+    }
+
+    if(!dni || dni.length < 7){
+      alert("DNI inválido");
+      return false;
+    }
+
+    if(!telefono || telefono.length < 8){
+      alert("Teléfono inválido");
+      return false;
+    }
 
     if(!horaSeleccionada){
       alert("Seleccione un horario");
-      return;
+      return false;
     }
 
-    if(!nombre || !telefono){
-      alert("Complete nombre y teléfono");
-      return;
-    }
+    return true;
+  }
+
+  // =========================
+  // CONFIRMAR TURNO
+  // =========================
+  async function confirmarTurno(){
+
+    if(!validar()) return;
 
     setEnviando(true);
 
     try{
 
-      await fetch(SCRIPT_URL,{
+      const res = await fetch(SCRIPT_URL,{
         method:"POST",
-        mode:"no-cors",
+        headers:{
+          "Content-Type":"application/json"
+        },
         body:JSON.stringify({
           nombre,
           dni,
@@ -85,32 +110,33 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         })
       });
 
-      // ✅ CONFIRMACION VISUAL REAL
-      setConfirmado(true);
+      const data = await res.json();
 
-      // limpiar formulario
-      setFecha("");
-      setHorarios([]);
-      setHoraSeleccionada("");
-      setNombre("");
-      setDni("");
-      setObraSocial("");
-      setTelefono("");
-      setMotivo("");
+      if(data.ok){
 
-      // cerrar modal en 2 segundos
-      setTimeout(()=>{
+        alert("✅ Turno confirmado correctamente");
+
         onSuccess();
-      },2000);
+
+      }else{
+
+        alert(data.mensaje);
+
+      }
 
     }catch{
-      alert("Error enviando turno");
+
+      alert("Error de conexión");
+
     }
 
     setEnviando(false);
 
   }
 
+  // =========================
+  // UI
+  // =========================
   return(
 
 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -118,14 +144,6 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
 <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg">
 
 <h2 className="text-xl font-bold mb-4">Solicitar turno</h2>
-
-{/* ✅ MENSAJE CONFIRMACION */}
-{confirmado && (
-  <div className="bg-green-100 text-green-700 p-3 rounded mb-4">
-    Turno enviado correctamente ✔  
-    En breve será confirmado.
-  </div>
-)}
 
 <input
 type="date"
@@ -146,13 +164,14 @@ key={h.hora}
 disabled={!h.disponible}
 onClick={()=>setHoraSeleccionada(h.hora)}
 className={`px-3 py-2 rounded border ${
-  horaSeleccionada === h.hora
-  ? "bg-blue-600 text-white"
-  : "bg-white"
+  !h.disponible
+    ? "bg-gray-300 cursor-not-allowed"
+    : horaSeleccionada === h.hora
+    ? "bg-blue-600 text-white"
+    : "bg-white"
 }`}
 >
 {h.hora}
-
 </button>
 
 ))}
@@ -201,7 +220,7 @@ onClick={confirmarTurno}
 disabled={enviando}
 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
 >
-{enviando ? "Enviando..." : "Confirmar turno"}
+{enviando ? "Guardando..." : "Confirmar turno"}
 </button>
 
 <button
