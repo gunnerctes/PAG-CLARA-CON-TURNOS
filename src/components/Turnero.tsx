@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby55glYP7x7FRf3neq3XyrGacnyyVjSP22z_vsBAcsTcEUwtV9UurwsaGxTbSdsXu4U3A/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyGdQNJ5AM2YlHDu2zV-zWWWQdgmdx1SJt2ZXKpBYDYX9jCRlU1D2yGhcbd5ViXPYdQXQ/exec";
 
 type Horario = {
   hora: string;
