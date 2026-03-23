@@ -22,12 +22,12 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
   const [motivo,setMotivo] = useState("");
 
   const [mensajeDia,setMensajeDia] = useState("");
+  const [mensajeError,setMensajeError] = useState("");
+  const [confirmado,setConfirmado] = useState(false);
+
   const [loading,setLoading] = useState(false);
   const [enviando,setEnviando] = useState(false);
 
-  // =========================
-  // CARGA HORARIOS
-  // =========================
   useEffect(()=>{
 
     if(!fecha) return;
@@ -36,6 +36,7 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
     setHorarios([]);
     setHoraSeleccionada("");
     setMensajeDia("");
+    setMensajeError("");
 
     fetch(`${SCRIPT_URL}?action=horarios&fecha=${fecha}`)
     .then(res=>res.json())
@@ -43,63 +44,62 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
 
       if(!data.diaValido){
         setMensajeDia(data.mensaje || "Este día no hay atención");
+        setHorarios([]);
         return;
       }
 
-      setHorarios(data.horarios);
+      const disponibles = data.horarios.filter((h:Horario)=>h.disponible);
+
+      setHorarios(disponibles);
 
     })
     .catch(()=>{
       setMensajeDia("Error consultando horarios");
+      setHorarios([]);
     })
     .finally(()=>setLoading(false));
 
   },[fecha]);
 
-  // =========================
-  // VALIDACIONES
-  // =========================
-  function validar(){
-
-    if(!nombre.trim() || nombre.trim().split(" ").length < 2){
-      alert("Ingrese nombre y apellido");
-      return false;
-    }
-
-    if(!dni || dni.length < 7){
-      alert("DNI inválido");
-      return false;
-    }
-
-    if(!telefono || telefono.length < 8){
-      alert("Teléfono inválido");
-      return false;
-    }
+  // 🔥 VALIDACIONES
+  function validarDatos(){
 
     if(!horaSeleccionada){
-      alert("Seleccione un horario");
-      return false;
+      return "Seleccione un horario";
     }
 
-    return true;
+    if(nombre.trim().split(" ").length < 2){
+      return "Ingrese nombre y apellido";
+    }
+
+    if(!/^[0-9]{7,8}$/.test(dni)){
+      return "DNI inválido (7 u 8 números)";
+    }
+
+    if(!/^(\+54)?9?\d{10}$/.test(telefono.replace(/\s/g,''))){
+      return "Teléfono inválido (formato argentino)";
+    }
+
+    return "";
   }
 
-  // =========================
-  // CONFIRMAR TURNO
-  // =========================
   async function confirmarTurno(){
 
-    if(!validar()) return;
+    const error = validarDatos();
 
+    if(error){
+      setMensajeError(error);
+      return;
+    }
+
+    setMensajeError("");
     setEnviando(true);
 
     try{
 
-      const res = await fetch(SCRIPT_URL,{
+      await fetch(SCRIPT_URL,{
         method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
+        mode:"no-cors",
         body:JSON.stringify({
           nombre,
           dni,
@@ -110,127 +110,97 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         })
       });
 
-      const data = await res.json();
-
-      if(data.ok){
-
-        alert("✅ Turno confirmado correctamente");
-
-        onSuccess();
-
-      }else{
-
-        alert(data.mensaje);
-
-      }
+      setConfirmado(true);
 
     }catch{
-
-      alert("Error de conexión");
-
+      setMensajeError("Error enviando turno");
     }
 
     setEnviando(false);
 
   }
 
-  // =========================
-  // UI
-  // =========================
   return(
 
 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
 <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg">
 
+{confirmado ? (
+
+<div className="text-center">
+
+<h2 className="text-2xl font-bold text-green-600 mb-4">
+Turno confirmado ✔
+</h2>
+
+<p className="mb-2"><strong>Fecha:</strong> {fecha}</p>
+<p className="mb-4"><strong>Hora:</strong> {horaSeleccionada}</p>
+
+<p className="text-gray-600 mb-6">
+Su turno fue registrado correctamente.
+</p>
+
+<button onClick={onClose} className="bg-blue-600 text-white px-6 py-3 rounded">
+Cerrar
+</button>
+
+</div>
+
+) : (
+
+<>
+
 <h2 className="text-xl font-bold mb-4">Solicitar turno</h2>
 
-<input
-type="date"
-value={fecha}
-onChange={e=>setFecha(e.target.value)}
-className="border p-2 w-full mb-3"
-/>
+<input type="date" value={fecha} onChange={e=>setFecha(e.target.value)} className="border p-2 w-full mb-3"/>
 
 {mensajeDia && <p className="text-red-500 mb-3">{mensajeDia}</p>}
 {loading && <p className="mb-3">Cargando horarios...</p>}
 
+{!loading && horarios.length === 0 && fecha && !mensajeDia && (
+<p className="text-gray-500 mb-3">No hay turnos disponibles</p>
+)}
+
 <div className="flex flex-wrap gap-2 mb-4">
-
 {horarios.map(h=>(
-
 <button
 key={h.hora}
-disabled={!h.disponible}
 onClick={()=>setHoraSeleccionada(h.hora)}
 className={`px-3 py-2 rounded border ${
-  !h.disponible
-    ? "bg-gray-300 cursor-not-allowed"
-    : horaSeleccionada === h.hora
-    ? "bg-blue-600 text-white"
-    : "bg-white"
+horaSeleccionada === h.hora ? "bg-blue-600 text-white" : "bg-white"
 }`}
 >
 {h.hora}
 </button>
-
 ))}
-
 </div>
 
-<input
-placeholder="Nombre y apellido"
-value={nombre}
-onChange={e=>setNombre(e.target.value)}
-className="border p-2 w-full mb-2"
-/>
+<input placeholder="Nombre y apellido" value={nombre} onChange={e=>setNombre(e.target.value)} className="border p-2 w-full mb-2"/>
+<input placeholder="DNI" value={dni} onChange={e=>setDni(e.target.value)} className="border p-2 w-full mb-2"/>
+<input placeholder="Obra social" value={obraSocial} onChange={e=>setObraSocial(e.target.value)} className="border p-2 w-full mb-2"/>
+<input placeholder="Teléfono" value={telefono} onChange={e=>setTelefono(e.target.value)} className="border p-2 w-full mb-2"/>
+<textarea placeholder="Motivo de consulta" value={motivo} onChange={e=>setMotivo(e.target.value)} className="border p-2 w-full mb-4"/>
 
-<input
-placeholder="DNI"
-value={dni}
-onChange={e=>setDni(e.target.value)}
-className="border p-2 w-full mb-2"
-/>
-
-<input
-placeholder="Obra social"
-value={obraSocial}
-onChange={e=>setObraSocial(e.target.value)}
-className="border p-2 w-full mb-2"
-/>
-
-<input
-placeholder="Teléfono"
-value={telefono}
-onChange={e=>setTelefono(e.target.value)}
-className="border p-2 w-full mb-2"
-/>
-
-<textarea
-placeholder="Motivo de consulta"
-value={motivo}
-onChange={e=>setMotivo(e.target.value)}
-className="border p-2 w-full mb-4"
-/>
+{mensajeError && (
+<p className="text-red-600 font-semibold mb-3">{mensajeError}</p>
+)}
 
 <div className="flex gap-2">
 
-<button
-onClick={confirmarTurno}
-disabled={enviando}
-className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
->
-{enviando ? "Guardando..." : "Confirmar turno"}
+<button onClick={confirmarTurno} disabled={enviando} className="bg-blue-600 text-white px-4 py-2 rounded">
+Confirmar turno
 </button>
 
-<button
-onClick={onClose}
-className="bg-gray-300 px-4 py-2 rounded"
->
+<button onClick={onClose} className="bg-gray-300 px-4 py-2 rounded">
 Cancelar
 </button>
 
 </div>
+
+</>
+
+)}
 
 </div>
 
