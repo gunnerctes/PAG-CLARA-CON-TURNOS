@@ -49,7 +49,6 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
       }
 
       const disponibles = data.horarios.filter((h:Horario)=>h.disponible);
-
       setHorarios(disponibles);
 
     })
@@ -61,7 +60,6 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
 
   },[fecha]);
 
-  // 🔥 VALIDACIONES
   function validarDatos(){
 
     if(!horaSeleccionada){
@@ -97,9 +95,11 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
 
     try{
 
-      await fetch(SCRIPT_URL,{
+      const res = await fetch(SCRIPT_URL,{
         method:"POST",
-        mode:"no-cors",
+        headers:{
+          "Content-Type":"application/json"
+        },
         body:JSON.stringify({
           nombre,
           dni,
@@ -110,10 +110,17 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         })
       });
 
-      setConfirmado(true);
+      const data = await res.json();
+
+      if(data.ok){
+        setConfirmado(true);
+        onSuccess();
+      }else{
+        setMensajeError(data.mensaje || "No se pudo agendar el turno");
+      }
 
     }catch{
-      setMensajeError("Error enviando turno");
+      setMensajeError("Error de conexión con el servidor");
     }
 
     setEnviando(false);
