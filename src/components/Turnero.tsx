@@ -49,6 +49,7 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
       }
 
       const disponibles = data.horarios.filter((h:Horario)=>h.disponible);
+
       setHorarios(disponibles);
 
     })
@@ -75,13 +76,15 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
     }
 
     if(!/^(\+54)?9?\d{10}$/.test(telefono.replace(/\s/g,''))){
-      return "Teléfono inválido (formato argentino)";
+      return "Teléfono inválido";
     }
 
     return "";
   }
 
   async function confirmarTurno(){
+
+    if(enviando) return;
 
     const error = validarDatos();
 
@@ -95,11 +98,9 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
 
     try{
 
-      const res = await fetch(SCRIPT_URL,{
+      await fetch(SCRIPT_URL,{
         method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
+        mode:"no-cors",
         body:JSON.stringify({
           nombre,
           dni,
@@ -110,17 +111,11 @@ export default function Turnero({ onClose = () => {}, onSuccess = () => {} }) {
         })
       });
 
-      const data = await res.json();
-
-      if(data.ok){
-        setConfirmado(true);
-        onSuccess();
-      }else{
-        setMensajeError(data.mensaje || "No se pudo agendar el turno");
-      }
+      setConfirmado(true);
+      onSuccess();
 
     }catch{
-      setMensajeError("Error de conexión con el servidor");
+      setMensajeError("Error enviando turno");
     }
 
     setEnviando(false);
@@ -148,7 +143,10 @@ Turno confirmado ✔
 Su turno fue registrado correctamente.
 </p>
 
-<button onClick={onClose} className="bg-blue-600 text-white px-6 py-3 rounded">
+<button
+onClick={onClose}
+className="bg-blue-600 text-white px-6 py-3 rounded"
+>
 Cerrar
 </button>
 
@@ -158,48 +156,110 @@ Cerrar
 
 <>
 
-<h2 className="text-xl font-bold mb-4">Solicitar turno</h2>
+<h2 className="text-xl font-bold mb-4">
+Solicitar turno
+</h2>
 
-<input type="date" value={fecha} onChange={e=>setFecha(e.target.value)} className="border p-2 w-full mb-3"/>
+<input
+type="date"
+value={fecha}
+onChange={e=>setFecha(e.target.value)}
+className="border p-2 w-full mb-3"
+/>
 
-{mensajeDia && <p className="text-red-500 mb-3">{mensajeDia}</p>}
-{loading && <p className="mb-3">Cargando horarios...</p>}
+{mensajeDia && (
+<p className="text-red-500 mb-3">
+{mensajeDia}
+</p>
+)}
+
+{loading && (
+<p className="mb-3">
+Cargando horarios...
+</p>
+)}
 
 {!loading && horarios.length === 0 && fecha && !mensajeDia && (
-<p className="text-gray-500 mb-3">No hay turnos disponibles</p>
+<p className="text-gray-500 mb-3">
+No hay turnos disponibles
+</p>
 )}
 
 <div className="flex flex-wrap gap-2 mb-4">
+
 {horarios.map(h=>(
+
 <button
 key={h.hora}
 onClick={()=>setHoraSeleccionada(h.hora)}
 className={`px-3 py-2 rounded border ${
-horaSeleccionada === h.hora ? "bg-blue-600 text-white" : "bg-white"
+horaSeleccionada === h.hora
+? "bg-blue-600 text-white"
+: "bg-white"
 }`}
 >
 {h.hora}
 </button>
+
 ))}
+
 </div>
 
-<input placeholder="Nombre y apellido" value={nombre} onChange={e=>setNombre(e.target.value)} className="border p-2 w-full mb-2"/>
-<input placeholder="DNI" value={dni} onChange={e=>setDni(e.target.value)} className="border p-2 w-full mb-2"/>
-<input placeholder="Obra social" value={obraSocial} onChange={e=>setObraSocial(e.target.value)} className="border p-2 w-full mb-2"/>
-<input placeholder="Teléfono" value={telefono} onChange={e=>setTelefono(e.target.value)} className="border p-2 w-full mb-2"/>
-<textarea placeholder="Motivo de consulta" value={motivo} onChange={e=>setMotivo(e.target.value)} className="border p-2 w-full mb-4"/>
+<input
+placeholder="Nombre y apellido"
+value={nombre}
+onChange={e=>setNombre(e.target.value)}
+className="border p-2 w-full mb-2"
+/>
+
+<input
+placeholder="DNI"
+value={dni}
+onChange={e=>setDni(e.target.value)}
+className="border p-2 w-full mb-2"
+/>
+
+<input
+placeholder="Obra social"
+value={obraSocial}
+onChange={e=>setObraSocial(e.target.value)}
+className="border p-2 w-full mb-2"
+/>
+
+<input
+placeholder="Teléfono"
+value={telefono}
+onChange={e=>setTelefono(e.target.value)}
+className="border p-2 w-full mb-2"
+/>
+
+<textarea
+placeholder="Motivo de consulta"
+value={motivo}
+onChange={e=>setMotivo(e.target.value)}
+className="border p-2 w-full mb-4"
+/>
 
 {mensajeError && (
-<p className="text-red-600 font-semibold mb-3">{mensajeError}</p>
+<p className="text-red-600 font-semibold mb-3">
+{mensajeError}
+</p>
 )}
 
 <div className="flex gap-2">
 
-<button onClick={confirmarTurno} disabled={enviando} className="bg-blue-600 text-white px-4 py-2 rounded">
-Confirmar turno
+<button
+onClick={confirmarTurno}
+disabled={enviando}
+className="bg-blue-600 text-white px-4 py-2 rounded disabled:bg-gray-400"
+>
+{enviando ? "Procesando..." : "Confirmar turno"}
 </button>
 
-<button onClick={onClose} className="bg-gray-300 px-4 py-2 rounded">
+<button
+onClick={onClose}
+className="bg-gray-300 px-4 py-2 rounded"
+>
 Cancelar
 </button>
 
