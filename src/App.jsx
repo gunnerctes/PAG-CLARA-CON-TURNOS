@@ -130,10 +130,10 @@ Ubicación del Consultorio
 <div className="max-w-3xl mx-auto">
 
 <iframe
-src="https://www.google.com/maps?q=Corrientes+Argentina+Lavalle640s&output=embed"
-className="w-full h-80 rounded-xl shadow"
-loading="lazy"
-></iframe>
+src="https://www.google.com/maps/embed?pb=..."
+width="600"
+height="450">
+</iframe>
 
 </div>
 
