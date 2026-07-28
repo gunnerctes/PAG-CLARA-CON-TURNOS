@@ -121,19 +121,62 @@ Agendar Consulta Virtual
 
 {/* UBICACION */}
 
-<section className="mt-24 text-center px-6">
+<section className="mt-24 px-6">
 
-<h2 className="text-3xl font-bold mb-6">
+<h2 className="text-3xl font-bold text-center mb-8">
 Ubicación del Consultorio
 </h2>
 
-<div className="max-w-3xl mx-auto">
+<div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden md:grid md:grid-cols-2">
+
+{/* DATOS */}
+
+<div className="p-8 flex flex-col justify-center">
+
+<h3 className="text-2xl font-bold mb-6">
+Consultorio
+</h3>
+
+<p className="text-gray-700 mb-3">
+📍 <strong>Dirección:</strong><br/>
+Lavalle 640<br/>
+Corrientes Capital
+</p>
+
+<p className="text-gray-700 mb-3">
+📞 <strong>Teléfono:</strong><br/>
++54 9 3794 777580
+</p>
+
+<p className="text-gray-700 mb-6">
+Atención con turnos programados.
+</p>
+
+<a
+href="https://www.google.com/maps/place/Lavalle+640,+Corrientes/"
+target="_blank"
+rel="noopener noreferrer"
+className="bg-blue-600 text-white text-center py-3 rounded-xl font-bold hover:bg-blue-700 transition"
+>
+Cómo llegar
+</a>
+
+</div>
+
+{/* MAPA */}
+
+<div>
 
 <iframe
-src="https://www.google.com/maps/embed?pb=..."
-width="600"
-height="450">
-</iframe>
+src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3539.7723044539384!2d-58.846637725533135!3d-27.47634721698767!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94456c96383b9aa3%3A0xf38555004a629df5!2sLavalle%20640%2C%20W3410BCM%20Corrientes!5e0!3m2!1ses-419!2sar!4v1785265683328!5m2!1ses-419!2sar"
+className="w-full h-full min-h-[420px]"
+style={{ border: 0 }}
+allowFullScreen
+loading="lazy"
+referrerPolicy="strict-origin-when-cross-origin"
+/>
+
+</div>
 
 </div>
 
